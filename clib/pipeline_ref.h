@@ -1,3 +1,6 @@
+#ifndef _PIPELINE_REF_H_
+#define _PIPELINE_REF_H_
+
 #include <stdio.h>
 #include <stdlib.h>
 #include "image.h"
@@ -387,3 +390,5 @@ void downCast_13(const Image<int>& in, Image<int>& out
     }
   }
 } // END downCast_13
+
+#endif

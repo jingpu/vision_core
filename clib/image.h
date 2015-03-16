@@ -2,8 +2,10 @@
 #define _IMAGE_H_
 
 #include <stdio.h>
+#include <string.h>
 #include <stdexcept>
 #include "qdbmp.h"
+#include <xtensa/xt_reftb.h>
 
 template <typename T>
 class Image
@@ -25,6 +27,10 @@ public:
   // read and write file functions
   void load(const char* filename) { readBMP(filename); }
   void save(const char* filename) const { saveBMP(filename); }
+  
+  void dumpDAT(const char* filename);
+  void loadDAT(const char* filename);
+  void cmpDAT(const char* filename);
 
   bool equal(const Image<T> &img) const;
 
@@ -46,13 +52,12 @@ template <typename T>
 Image<T>::Image(int width, int height, int channels, T padding)
 {
   printf("constructing Image object: w=%d, h=%d, c=%d, pixel size= %ub\n",
-	 width, height, channels, sizeof(T));
+  	 width, height, channels, sizeof(T));
   mWidth = width;
   mHeight = height;
   mChannels = channels;
   mData = new T[mWidth * mHeight * mChannels];
   mPadding = padding;
-  //printf("&mData = %p\n", mData);
 }
 
 
@@ -181,6 +186,46 @@ void Image<T>::saveBMP(const char* filename) const
 }
 
 
+template <typename T>
+void Image<T>::dumpDAT(const char* filename)
+{
+  FILE *fp;
+  fp= fopen(filename,"wb");
+  size_t nElem = mWidth * mHeight * mChannels;
+  fwrite(mData, nElem, sizeof(T),fp); 
+  fclose(fp);
+}
+
+
+template <typename T>
+void Image<T>::loadDAT(const char* filename)
+{
+  FILE *fp;
+  fp = fopen(filename,"rb");
+  size_t nElem = mWidth * mHeight * mChannels;
+  fread(mData, nElem, sizeof(T),fp); 
+  fclose(fp);
+}
+
+
+template <typename T>
+void Image<T>::cmpDAT(const char* filename)
+{
+  FILE *fp;
+  fp = fopen(filename,"rb");
+  size_t nElem = mWidth * mHeight * mChannels;
+  T* fData = new T[nElem];
+  fread(mData, nElem, sizeof(T),fp); 
+  fclose(fp);
+
+  int res = memcmp (mData, fData, nElem * sizeof(T));
+  if (res == 0)
+    pass("Image compare pass.");
+  else 
+    fail("Image compare fail.");
+
+  delete[] fData;
+}
 
 #endif
 

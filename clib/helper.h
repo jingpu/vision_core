@@ -2,13 +2,13 @@
 #define _HELPER_H_
 
 #include "image.h"
-#include <xtensa/tie/vision_n4m1r32t1.h>
+#include "arch.h"
+
 
 void shuffle_s2v(const Image<int> &in, Image<vector32> &out) {
   const int w = in.width();
   const int h = in.height();
   const int c = in.channels();
-  const int N = 4;  // width of SIMD
 
   if(w != out.width()*N || h != out.height() || c != out.channels())
     throw std::runtime_error("shuffle_s2v(): two image sizes don't match.");
@@ -37,7 +37,6 @@ void shuffle_v2s(const Image<vector32> &in, Image<int> &out) {
   const int w = out.width();
   const int h = out.height();
   const int c = out.channels();
-  const int N = 4;  // width of SIMD
 
   if(w != in.width()*N || h != in.height() || c != in.channels())
     throw std::runtime_error("shuffle_v2s(): two image sizes don't match.");
