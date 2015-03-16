@@ -11,9 +11,9 @@ TDK_DIR = ../tie_out
 CFLAGS =  -O2 -g --xtensa-params=$(TDK_DIR) -fexceptions -keep_min
 
 TARGET = pipeline
-SIM_ARGS = --xtensa-params=$(TDK_DIR) --summary  \
+SIM_ARGS = --xtensa-params=$(TDK_DIR) \
 	--memlimit=512 --turbo --client_cmds="isa_profile --disable"
-#	--client_cmds="ferret --warn-unaligned"
+#	--client_cmds="ferret --warn-unaligned" --summary  
 TAR_ARGS = ./inp.bmp
 
 all: $(TARGET)

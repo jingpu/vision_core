@@ -90,7 +90,9 @@ function [31:0] func_lshift32 ([31:0] op1, [31:0] op2)
 
 function [31:0] func_rshift32 ([31:0] op1, [31:0] op2)
 {
-   assign func_rshift32 = op1 >> op2;
+   wire is_pos = (op1[31] == 1'b0);
+   assign func_rshift32 = is_pos ? (op1 >> op2) :
+                          ({32'hffff_ffff, op1} >> op2);
 }
 
 function [31:0] func_max32 ([31:0] op1, [31:0] op2)
@@ -101,8 +103,8 @@ function [31:0] func_max32 ([31:0] op1, [31:0] op2)
 
 function [31:0] func_min32 ([31:0] op1, [31:0] op2)
 {
-   wire gt = func_lt32(op1, op2);
-   assign func_min32 = func_mux32(gt, op1, op2);
+   wire lt = func_lt32(op1, op2);
+   assign func_min32 = func_mux32(lt, op1, op2);
 }
 
 operation mv32.sv {out vector32 des, in AR src1}{}
