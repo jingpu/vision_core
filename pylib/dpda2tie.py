@@ -46,7 +46,7 @@ def write_complex_op_tie(writer, op, datatype):
     else:
         print "Unhandled complex operator " + op
 
-def write_kernel_tie(w, k):
+def write_kernel_tie(w, k, code_type):
   """
   Parameters are the CodeWriter object, and the kernel object (not just the name)
   """
@@ -58,6 +58,13 @@ def write_kernel_tie(w, k):
     for indices in dpdadag.expand_range(k.edges[tapName].dim):
       w.writeln("\t, {type} {tap}_s".format(type=tapCType, 
                                             tap=compile.mangle((tapName, indices))))
+  
+  # for header type, only print declaration
+  if code_type == 'header':
+      w.writeln(");")
+      w.writeln("")
+      return
+  
   w.writeln(")")
   w.writeln("{")
   w.indent()
@@ -89,12 +96,35 @@ def write_kernel_tie(w, k):
   
   w.writeln("")
 
-  w.writeln("for(int y = 0; y < in.height(); y++){")
-  w.indent()
+
+  w.writeln("const vector32 *in_ptr = in.mData; // use direct access to speed up inner loop")
+  w.writeln("vector32 *out_ptr = out.mData; // use direct access to speed up inner loop")
+  w.writeln("const int IN_WIDTH = in.width();")
+  w.writeln("const int IN_HEIGHT = in.height();")
 
   # Grab the register declaration for the partial-pixel output and blow it into
   # the complete list of input registers
   startName = k.ppoutName
+  # extract some information from input/output stencil dimention
+  input_dim = k.edges[startName].dim
+  output_dim = k.edges[k.sink].dim
+  in_channels = 1   # default number of the channels is one
+  out_channels = 1   # default number of the channels is one
+  if (len(input_dim) == 3):
+      c_dim = input_dim[2]  # tuple of (start, end)
+      in_channels = abs(c_dim[0] - c_dim[1] + 1)
+  if (len(output_dim) == 1):
+      c_dim = output_dim[0]  # tuple of (start, end)
+      out_channels = abs(c_dim[0] - c_dim[1] + 1)
+  w.writeln("const int IN_CHANNELS = {}; // use static value to allow more compiler optimization".format(in_channels))
+  w.writeln("const int OUT_CHANNELS = {}; /// use static value to allow more compiler optimization".format(out_channels))
+
+  w.writeln("")
+  w.writeln("// Turn on SAIF power toggle data capture")
+  w.writeln("set_power_toggle(POWER_TOGGLE_ON);")
+  w.writeln("for(int y = 0; y < in.height(); y++){")
+  w.indent()
+
   w.writeln("// declare the registers storing the stencil window")
   for indices in dpdadag.expand_range(k.edges[startName].dim):
     w.writeln("register vector32 {sig} asm(\"v32r{idx}\");".format(
@@ -105,13 +135,33 @@ def write_kernel_tie(w, k):
 
   # load first stencil in a row from the image
   w.writeln("// load the stencil window for each scan of row")
-  x_dim = k.edges[startName].dim[0] # tuple of (start, end)
+
+  # calculate the range of X
+  x_dim =  input_dim[0]  # tuple of (start, end)
   if (x_dim[1] < x_dim[0]):
       x_dim = (x_dim[1], x_dim[0]) # sort the order
   x_range = range(x_dim[0]+1, x_dim[1]+1) # skip the first x value
 
+  # calculate condition on Y for direct load, i.e. stencil not on boundry
+  y_dim =  input_dim[1]  # tuple of (start, end)
+  y_conditions = []
+  y_min = min(y_dim) - k.centroid[1]
+  y_max = max(y_dim) - k.centroid[1]
+  if (y_min < 0):
+      y_conditions.append("y + {} >= 0".format(y_min))
+  if (y_max > 0):
+      y_conditions.append("y + {} < IN_HEIGHT".format(y_max))
+  y_cond_string = str.join(' && ', y_conditions)
+
+  if (y_cond_string != ""):
+      w.writeln("if ({cond}) {{".format(cond=y_cond_string))
+      w.indent()
+      w.writeln("#pragma frequency_hint FREQUENT")
+      w.writeln("// not on Y boundry, use direct access")
+      w.writeln("")
+
   for xx in x_range:
-      for indices in dpdadag.expand_range(k.edges[startName].dim[1:]):
+      for indices in dpdadag.expand_range(input_dim[1:]):
           sigName_x = "{0}_{1}".format(startName, xx)
           sigName = compile.mangle((sigName_x, indices))
           # HACK: work with multi-channel or single-channel images
@@ -124,17 +174,44 @@ def write_kernel_tie(w, k):
           x_pos = xx - k.centroid[0] - 1
           x_idx = x_pos
           if (x_pos < 0):
-              x_idx = "in.width() {0}".format(x_pos)
+              x_idx = "IN_WIDTH {0}".format(x_pos)
 
-          w.writeln("{sig} = in({x}, y+{yoff}, {z});".format(
-                  sig=sigName, x=x_idx, 
-                  yoff=(indices[0]-k.centroid[1]), z=z_idx))
+          w.writeln("{sig} = in_ptr[(y+{yoff})*IN_WIDTH*IN_CHANNELS + ({x})*IN_CHANNELS + {z}];".format(sig=sigName, x=x_idx, yoff=(indices[0]-k.centroid[1]), z=z_idx))
           if (x_pos < 0):
               w.writeln("{sig} = getl32_vv({sig});".format(sig=sigName))
 
+
+  if (y_cond_string != ""):
+      w.unindent()
+      w.writeln("} else {")
+      w.indent()
+      
+      for xx in x_range:
+          for indices in dpdadag.expand_range(input_dim[1:]):
+              sigName_x = "{0}_{1}".format(startName, xx)
+              sigName = compile.mangle((sigName_x, indices))
+              # HACK: work with multi-channel or single-channel images
+              z_idx = 0
+              if len(indices) == 2:
+                  z_idx = indices[1]
+      
+              # Note that is x is out of range (i.e. x_pos<0), 
+              # we need to wrap around, then do a shift ('getl' operation)
+              x_pos = xx - k.centroid[0] - 1
+              x_idx = x_pos
+              if (x_pos < 0):
+                  x_idx = "IN_WIDTH {0}".format(x_pos)
+
+              w.writeln("{sig} = in({x}, y+{yoff}, {z});".format(sig=sigName, x=x_idx, yoff=(indices[0]-k.centroid[1]), z=z_idx))
+              if (x_pos < 0):
+                  w.writeln("{sig} = getl32_vv({sig});".format(sig=sigName))
+      
+      w.unindent()
+      w.writeln("}")
+
   w.writeln("")
   # scan a row
-  w.writeln("for(int x = 0; x < in.width(); x++){")
+  w.writeln("for(int x = 0; x < IN_WIDTH; x++){")
   w.indent()
   
   # shift the stencil window
@@ -153,11 +230,21 @@ def write_kernel_tie(w, k):
   # load the new input pixel
   x_offset = x_dim[1] - k.centroid[0]
   w.writeln("// load the update stencil")
-  w.writeln("unsigned idx = x + {offset};".format(offset=x_offset))
-  w.writeln("if (idx < in.width()) {")
+  w.writeln("int idx = x + {offset};".format(offset=x_offset))
+  w.writeln("if (idx < IN_WIDTH) {")
   w.indent()
 
   # normal load
+  w.writeln("#pragma frequency_hint FREQUENT")
+  w.writeln("// not on X boundry, common case")
+  w.writeln("")
+  if (y_cond_string != ""):
+      w.writeln("if ({cond}) {{".format(cond=y_cond_string))
+      w.indent()
+      w.writeln("#pragma frequency_hint FREQUENT")
+      w.writeln("// not on Y boundry, use direct access")
+      w.writeln("")
+
   for indices in dpdadag.expand_range(k.edges[startName].dim[1:]):
       sigName_x = "{0}_{1}".format(startName, x_dim[1])
       sigName = compile.mangle((sigName_x, indices))
@@ -166,8 +253,27 @@ def write_kernel_tie(w, k):
       if len(indices) == 2:
           z_idx = indices[1]
       
-      w.writeln("{sig} = in(idx, y+{yoff}, {z});".format(
-              sig=sigName, yoff=(indices[0]-k.centroid[1]), z=z_idx))
+      w.writeln("{sig} = in_ptr[(y+{yoff})*IN_WIDTH*IN_CHANNELS + idx*IN_CHANNELS + {z}];".format(sig=sigName, yoff=(indices[0]-k.centroid[1]), z=z_idx))
+
+  if (y_cond_string != ""):
+      w.unindent()
+      w.writeln("} else {")
+      w.indent()
+      
+      # use function call to load data, which test boundry condition inside
+      for indices in dpdadag.expand_range(k.edges[startName].dim[1:]):
+          sigName_x = "{0}_{1}".format(startName, x_dim[1])
+          sigName = compile.mangle((sigName_x, indices))
+          # HACK: work with multi-channel or single-channel images
+          z_idx = 0
+          if len(indices) == 2:
+              z_idx = indices[1]
+      
+          w.writeln("{sig} = in(idx, y+{yoff}, {z});".format(sig=sigName, yoff=(indices[0]-k.centroid[1]), z=z_idx))
+      
+      w.unindent()
+      w.writeln("}")
+      
 
   w.unindent()
   w.writeln("} else {")
@@ -182,8 +288,8 @@ def write_kernel_tie(w, k):
       if len(indices) == 2:
           z_idx = indices[1]
       
-      w.writeln("{sig} = in(idx - in.width(), y+{yoff}, {z});".format(
-              sig=sigName, yoff=(indices[0]-k.centroid[1]), z=z_idx))
+      #w.writeln("{sig} = in_ptr[(y+{yoff})*IN_WIDTH*IN_CHANNELS + (idx - IN_WIDTH)*IN_CHANNELS + {z}];".format(sig=sigName, yoff=(indices[0]-k.centroid[1]), z=z_idx))
+      w.writeln("{sig} = in(idx - IN_WIDTH, y+{yoff}, {z});".format(sig=sigName, yoff=(indices[0]-k.centroid[1]), z=z_idx))
       w.writeln("{sig} = getr32_vv({sig});".format(sig=sigName))
 
   w.unindent()
@@ -266,12 +372,16 @@ def write_kernel_tie(w, k):
   for indices in dpdadag.expand_range(k.edges[k.sink].dim):
     #writeln('printf("result: %f\\n", {reg});'.format(reg=compile.mangle((k.sink, indices))))
     # TODO: make this handle depths other than 3
-    w.writeln('out(x,y,{z}) = {reg};'.format(z=indices[0], reg=compile.mangle((k.sink, indices))))
+    w.writeln('out_ptr[y*IN_WIDTH*OUT_CHANNELS + x*OUT_CHANNELS + {z}] = {reg};'
+              .format(z=indices[0], reg=compile.mangle((k.sink, indices))))
 
   w.unindent()
   w.writeln("}")
   w.unindent()
   w.writeln("}")
+  w.writeln("")
+  w.writeln("// End SAIF power toggle data capture")
+  w.writeln("set_power_toggle(POWER_TOGGLE_OFF);")
   w.unindent()
   w.writeln("} // END %s" % k.name)
   w.writeln("\n")
@@ -285,13 +395,15 @@ def write_main_tie(w, dag):
   w.writeln("{");
   w.indent()
 
+  w.writeln("setup_power_toggle();")
+  w.writeln()
+
   head = dag.head # Get the edge which points to the first kernel
   w.writeln("int width = 256;  // TODO change to match input image")
   w.writeln("int height = 256;  // TODO change to match input image")
   w.writeln("int channels = 3;  // TODO change to match input image")
-  w.writeln("int N = 4;  // TODO change to match SIMD width")
-  w.writeln("Image<int> %s(width, height, channels, 0);" % head)
-  w.writeln("%s.load(argv[1]);  // load the input image from file" % head)
+  w.writeln("Image<int> %s_ref(width, height, channels, 0);" % head)
+  w.writeln("%s_ref.load(argv[1]);  // load the input image from file" % head)
   w.writeln()
 
   w.writeln("// Set tap values")
@@ -320,7 +432,8 @@ def write_main_tie(w, dag):
   w.writeln("")
   w.writeln("// Create the input image in vector format")
   w.writeln("Image<vector32> {}_v(width/N, height, channels, zero_v);".format(dag.head))
-  w.writeln("shuffle_s2v({0}, {0}_v);".format(dag.head))
+  w.writeln("shuffle_s2v({0}_ref, {0}_v);".format(dag.head))
+  w.writeln('{0}_v.dumpDAT("{0}_v.dat");'.format(dag.head))
 
   w.writeln("")
   w.writeln("// Construct the pipeline of kernels")
@@ -341,7 +454,8 @@ def write_main_tie(w, dag):
         w.writeln("\t, {sig}".format(sig=compile.mangle((tapName, indices))))
     w.writeln(");")
     w.writeln("shuffle_v2s({0}_v, {0});".format(k.sink))
-    #w.writeln('{0}.save("{0}.bmp");'.format(k.sink))
+    w.writeln('//{0}.save("{0}.bmp");'.format(k.sink))
+    w.writeln('{0}_v.dumpDAT("{0}_v.dat");'.format(k.sink))
     w.writeln("") 
 
     # go to the next kernel
@@ -350,14 +464,36 @@ def write_main_tie(w, dag):
   w.writeln("")
   w.writeln("// Create the output image in normal format")
   w.writeln('{}.save("result.bmp");'.format(k.sink))
+
+  w.writeln("")
+  w.writeln("// Construct the pipeline of reference kernels")
+  head = dag.head # Get the edge which points to the first kernel
+  while head != dag.tail:
+    # Look up the kernel corresponding to the edge sink
+    k = dag.kernels[dag.edges[head][1]]
+
+    # Create an image for the output
+    channels = len(dpdadag.expand_range(k.edges[k.sink].dim))
+    w.writeln("Image<int> {0}_ref(width, height, {1}, 0);".format(k.sink, channels))
+
+    # Invoke the kernel
+    w.writeln("{k}({src}_ref, {sink}_ref".format(k=k.name, src=head, sink=k.sink))
+    for tapName in k.rtapNames:
+      for indices in dpdadag.expand_range(k.edges[tapName].dim):
+        w.writeln("\t, {sig}".format(sig=compile.mangle((tapName, indices))))
+    w.writeln(");")
+    w.writeln("{0}_ref.equal({0});  // check results".format(k.sink))
+    w.writeln("") 
+
+    # go to the next kernel
+    head = k.sink
+
+
+
+
   w.writeln("return 0;");
   w.unindent()
   w.writeln("}");
-"""
-  channels = len(dpdadag.expand_range(k.edges[k.sink].dim))
-  w.writeln("Image<int> {0}(width, height, {1}, 0);".format(k.sink, channels))
-  w.writeln("shuffle_v2s({0}_v, {0});  ".format(k.sink))
-"""
 
 
 
@@ -369,18 +505,47 @@ if __name__ == "__main__":
   else:
     sourceFile = sys.argv[-1]
 
-  w = compile.CodeWriter("../clib/pipeline.cpp")
-  w.writeln("#include <stdio.h>");
-  w.writeln("#include <stdlib.h>");
-  w.writeln("#include \"image.h\"");
-  w.writeln("#include \"helper.h\"");
-  w.writeln("#include <xtensa/tie/vision.h>");
-
   dag = dpdadag.parse_dpda(sourceFile)
 
+  w = compile.CodeWriter("./pipeline.h")
+  w.writeln("#ifndef _PIPELINE_H_")
+  w.writeln("#define _PIPELINE_H_")
+  w.writeln()
+  w.writeln("#include \"image.h\"")
+  w.writeln("#include \"arch.h\"")
+  w.writeln()
   for k in dag.kernels.values():
-    write_kernel_tie(w, k)
+    write_kernel_tie(w, k, 'header')
+  w.writeln("#endif")
+  w.close()
+
+
+  w = compile.CodeWriter("./pipeline.cpp")
+  w.writeln("#include \"pipeline.h\"")
+  w.writeln()
+  w.writeln("#include <xtensa/sim.h>")
+  w.writeln("#include <xtensa/hal.h>")
+  w.writeln("#include <xtensa/config/core.h>")
+  w.writeln("#include <xtensa/config/system.h>")
+  w.writeln("#include <xtensa/xt_reftb.h>")
+  w.writeln()
+  for k in dag.kernels.values():
+    write_kernel_tie(w, k, 'source')
+  w.close()
+
+  w = compile.CodeWriter("./test.cpp")
+  w.writeln("#include <stdio.h>")
+  w.writeln("#include <stdlib.h>")
+  w.writeln("#include \"image.h\"")
+  w.writeln("#include \"arch.h\"")
+  w.writeln("#include \"helper.h\"")
+  w.writeln("#include \"pipeline_ref.h\"")
+  w.writeln("#include \"pipeline.h\"")
+  w.writeln("#include <xtensa/sim.h>")
+  w.writeln("#include <xtensa/hal.h>")
+  w.writeln("#include <xtensa/config/core.h>")
+  w.writeln("#include <xtensa/config/system.h>")
+  w.writeln("#include <xtensa/xt_reftb.h>")
 
   write_main_tie(w, dag)
-
   w.close()

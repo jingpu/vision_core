@@ -1,7 +1,5 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include "image.h"
-#include "arch.h"
+#include "pipeline.h"
+
 #include <xtensa/sim.h>
 #include <xtensa/hal.h>
 #include <xtensa/config/core.h>
@@ -28,6 +26,15 @@ void lambda_arris_v3lua_line43_10(const Image<vector32>& in, Image<vector32>& ou
   register vector32 c_32767_0 asm("v32r4"); // keep in the register
   c_32767_0 = mv32_sv(32767);
   
+  const vector32 *in_ptr = in.mData; // use direct access to speed up inner loop
+  vector32 *out_ptr = out.mData; // use direct access to speed up inner loop
+  const int IN_WIDTH = in.width();
+  const int IN_HEIGHT = in.height();
+  const int IN_CHANNELS = 3; // use static value to allow more compiler optimization
+  const int OUT_CHANNELS = 1; /// use static value to allow more compiler optimization
+  
+  // Turn on SAIF power toggle data capture
+  set_power_toggle(POWER_TOGGLE_ON);
   for(int y = 0; y < in.height(); y++){
     // declare the registers storing the stencil window
     register vector32 cropSpecial0Node_10_pp_0_0_2 asm("v32r5");
@@ -36,21 +43,24 @@ void lambda_arris_v3lua_line43_10(const Image<vector32>& in, Image<vector32>& ou
     
     // load the stencil window for each scan of row
     
-    for(int x = 0; x < in.width(); x++){
+    for(int x = 0; x < IN_WIDTH; x++){
       // shift the stencil window, and load the new input pixel
       
       // load the update stencil
-      unsigned idx = x + 0;
-      if (idx < in.width()) {
-        cropSpecial0Node_10_pp_0_0_2 = in(idx, y+0, 2);
-        cropSpecial0Node_10_pp_0_0_1 = in(idx, y+0, 1);
-        cropSpecial0Node_10_pp_0_0_0 = in(idx, y+0, 0);
+      int idx = x + 0;
+      if (idx < IN_WIDTH) {
+        #pragma frequency_hint FREQUENT
+        // not on X boundry, common case
+        
+        cropSpecial0Node_10_pp_0_0_2 = in_ptr[(y+0)*IN_WIDTH*IN_CHANNELS + idx*IN_CHANNELS + 2];
+        cropSpecial0Node_10_pp_0_0_1 = in_ptr[(y+0)*IN_WIDTH*IN_CHANNELS + idx*IN_CHANNELS + 1];
+        cropSpecial0Node_10_pp_0_0_0 = in_ptr[(y+0)*IN_WIDTH*IN_CHANNELS + idx*IN_CHANNELS + 0];
       } else {
-        cropSpecial0Node_10_pp_0_0_2 = in(idx - in.width(), y+0, 2);
+        cropSpecial0Node_10_pp_0_0_2 = in(idx - IN_WIDTH, y+0, 2);
         cropSpecial0Node_10_pp_0_0_2 = getr32_vv(cropSpecial0Node_10_pp_0_0_2);
-        cropSpecial0Node_10_pp_0_0_1 = in(idx - in.width(), y+0, 1);
+        cropSpecial0Node_10_pp_0_0_1 = in(idx - IN_WIDTH, y+0, 1);
         cropSpecial0Node_10_pp_0_0_1 = getr32_vv(cropSpecial0Node_10_pp_0_0_1);
-        cropSpecial0Node_10_pp_0_0_0 = in(idx - in.width(), y+0, 0);
+        cropSpecial0Node_10_pp_0_0_0 = in(idx - IN_WIDTH, y+0, 0);
         cropSpecial0Node_10_pp_0_0_0 = getr32_vv(cropSpecial0Node_10_pp_0_0_0);
       }
       
@@ -85,10 +95,13 @@ void lambda_arris_v3lua_line43_10(const Image<vector32>& in, Image<vector32>& ou
       // min lambda_arris_v3lua_line43_51_0 <= (lambda_arris_v3lua_line43_51_pack_1 , lambda_arris_v3lua_line43_51_pack_0)
       vector32 lambda_arris_v3lua_line43_51_0_cotmp_1 = min32_vv(lambda_arris_v3lua_line43_51_pack_1, lambda_arris_v3lua_line43_51_pack_0);
       vector32 lambda_arris_v3lua_line43_51_0 = lambda_arris_v3lua_line43_51_0_cotmp_1;
-      
-      out(x,y,0) = lambda_arris_v3lua_line43_51_0;
+
+      out_ptr[y*IN_WIDTH*OUT_CHANNELS + x*OUT_CHANNELS + 0] = lambda_arris_v3lua_line43_51_0;
     }
   }
+  
+  // End SAIF power toggle data capture
+  set_power_toggle(POWER_TOGGLE_OFF);
 } // END lambda_arris_v3lua_line43_10
 
 
@@ -110,6 +123,15 @@ void Resp_5(const Image<vector32>& in, Image<vector32>& out
   register vector32 c_15_0 asm("v32r4"); // keep in the register
   c_15_0 = mv32_sv(15);
   
+  const vector32 *in_ptr = in.mData; // use direct access to speed up inner loop
+  vector32 *out_ptr = out.mData; // use direct access to speed up inner loop
+  const int IN_WIDTH = in.width();
+  const int IN_HEIGHT = in.height();
+  const int IN_CHANNELS = 1; // use static value to allow more compiler optimization
+  const int OUT_CHANNELS = 1; /// use static value to allow more compiler optimization
+  
+  // Turn on SAIF power toggle data capture
+  set_power_toggle(POWER_TOGGLE_ON);
   for(int y = 0; y < in.height(); y++){
     // declare the registers storing the stencil window
     register vector32 downCast_38_pp_2_2 asm("v32r5");
@@ -123,17 +145,32 @@ void Resp_5(const Image<vector32>& in, Image<vector32>& out
     register vector32 downCast_38_pp_0_0 asm("v32r13");
     
     // load the stencil window for each scan of row
-    downCast_38_pp_1_2 = in(in.width() -1, y+1, 0);
-    downCast_38_pp_1_2 = getl32_vv(downCast_38_pp_1_2);
-    downCast_38_pp_1_1 = in(in.width() -1, y+0, 0);
-    downCast_38_pp_1_1 = getl32_vv(downCast_38_pp_1_1);
-    downCast_38_pp_1_0 = in(in.width() -1, y+-1, 0);
-    downCast_38_pp_1_0 = getl32_vv(downCast_38_pp_1_0);
-    downCast_38_pp_2_2 = in(0, y+1, 0);
-    downCast_38_pp_2_1 = in(0, y+0, 0);
-    downCast_38_pp_2_0 = in(0, y+-1, 0);
+    if (y + -1 >= 0 && y + 1 < IN_HEIGHT) {
+      #pragma frequency_hint FREQUENT
+      // not on Y boundry, use direct access
+      
+      downCast_38_pp_1_2 = in_ptr[(y+1)*IN_WIDTH*IN_CHANNELS + (IN_WIDTH -1)*IN_CHANNELS + 0];
+      downCast_38_pp_1_2 = getl32_vv(downCast_38_pp_1_2);
+      downCast_38_pp_1_1 = in_ptr[(y+0)*IN_WIDTH*IN_CHANNELS + (IN_WIDTH -1)*IN_CHANNELS + 0];
+      downCast_38_pp_1_1 = getl32_vv(downCast_38_pp_1_1);
+      downCast_38_pp_1_0 = in_ptr[(y+-1)*IN_WIDTH*IN_CHANNELS + (IN_WIDTH -1)*IN_CHANNELS + 0];
+      downCast_38_pp_1_0 = getl32_vv(downCast_38_pp_1_0);
+      downCast_38_pp_2_2 = in_ptr[(y+1)*IN_WIDTH*IN_CHANNELS + (0)*IN_CHANNELS + 0];
+      downCast_38_pp_2_1 = in_ptr[(y+0)*IN_WIDTH*IN_CHANNELS + (0)*IN_CHANNELS + 0];
+      downCast_38_pp_2_0 = in_ptr[(y+-1)*IN_WIDTH*IN_CHANNELS + (0)*IN_CHANNELS + 0];
+    } else {
+      downCast_38_pp_1_2 = in(IN_WIDTH -1, y+1, 0);
+      downCast_38_pp_1_2 = getl32_vv(downCast_38_pp_1_2);
+      downCast_38_pp_1_1 = in(IN_WIDTH -1, y+0, 0);
+      downCast_38_pp_1_1 = getl32_vv(downCast_38_pp_1_1);
+      downCast_38_pp_1_0 = in(IN_WIDTH -1, y+-1, 0);
+      downCast_38_pp_1_0 = getl32_vv(downCast_38_pp_1_0);
+      downCast_38_pp_2_2 = in(0, y+1, 0);
+      downCast_38_pp_2_1 = in(0, y+0, 0);
+      downCast_38_pp_2_0 = in(0, y+-1, 0);
+    }
     
-    for(int x = 0; x < in.width(); x++){
+    for(int x = 0; x < IN_WIDTH; x++){
       // shift the stencil window, and load the new input pixel
       downCast_38_pp_0_2 = downCast_38_pp_1_2;
       downCast_38_pp_0_1 = downCast_38_pp_1_1;
@@ -143,17 +180,29 @@ void Resp_5(const Image<vector32>& in, Image<vector32>& out
       downCast_38_pp_1_0 = downCast_38_pp_2_0;
       
       // load the update stencil
-      unsigned idx = x + 1;
-      if (idx < in.width()) {
-        downCast_38_pp_2_2 = in(idx, y+1, 0);
-        downCast_38_pp_2_1 = in(idx, y+0, 0);
-        downCast_38_pp_2_0 = in(idx, y+-1, 0);
+      int idx = x + 1;
+      if (idx < IN_WIDTH) {
+        #pragma frequency_hint FREQUENT
+        // not on X boundry, common case
+        
+        if (y + -1 >= 0 && y + 1 < IN_HEIGHT) {
+          #pragma frequency_hint FREQUENT
+          // not on Y boundry, use direct access
+          
+          downCast_38_pp_2_2 = in_ptr[(y+1)*IN_WIDTH*IN_CHANNELS + idx*IN_CHANNELS + 0];
+          downCast_38_pp_2_1 = in_ptr[(y+0)*IN_WIDTH*IN_CHANNELS + idx*IN_CHANNELS + 0];
+          downCast_38_pp_2_0 = in_ptr[(y+-1)*IN_WIDTH*IN_CHANNELS + idx*IN_CHANNELS + 0];
+        } else {
+          downCast_38_pp_2_2 = in(idx, y+1, 0);
+          downCast_38_pp_2_1 = in(idx, y+0, 0);
+          downCast_38_pp_2_0 = in(idx, y+-1, 0);
+        }
       } else {
-        downCast_38_pp_2_2 = in(idx - in.width(), y+1, 0);
+        downCast_38_pp_2_2 = in(idx - IN_WIDTH, y+1, 0);
         downCast_38_pp_2_2 = getr32_vv(downCast_38_pp_2_2);
-        downCast_38_pp_2_1 = in(idx - in.width(), y+0, 0);
+        downCast_38_pp_2_1 = in(idx - IN_WIDTH, y+0, 0);
         downCast_38_pp_2_1 = getr32_vv(downCast_38_pp_2_1);
-        downCast_38_pp_2_0 = in(idx - in.width(), y+-1, 0);
+        downCast_38_pp_2_0 = in(idx - IN_WIDTH, y+-1, 0);
         downCast_38_pp_2_0 = getr32_vv(downCast_38_pp_2_0);
       }
       
@@ -204,6 +253,7 @@ void Resp_5(const Image<vector32>& in, Image<vector32>& out
       vector32 in1x_36_0_cotmp_4 = add32_vv(in1x_36_0_cotmp_3, in1x_36_pack_1);
       vector32 in1x_36_0_cotmp_5 = add32_vv(in1x_36_0_cotmp_4, in1x_36_pack_0);
       vector32 in1x_36_0 = in1x_36_0_cotmp_5;
+
       vector32 in1x_37_pack_0 = in1x_36_0;
       vector32 in1y_22_pack_0 = in1x_30_0;
       vector32 in1x_34_0 = inv32_vv(in1_28_0);
@@ -221,7 +271,6 @@ void Resp_5(const Image<vector32>& in, Image<vector32>& out
 
       vector32 sobel_3_0 = in1x_38_0;
       vector32 Wxx_20_0 = sobel_3_0;
-
       vector32 Wxx_21_0 = mult32_vv(Wxx_20_0, Wxx_20_0);
       vector32 Wxx_22_0 = rshift32_vv(Wxx_21_0, Wxx_11_0);
       vector32 Wxx_23_pack_0 = Wxx_22_0;
@@ -260,7 +309,6 @@ void Resp_5(const Image<vector32>& in, Image<vector32>& out
       vector32 Wyy_16_0 = mult32_vv(Wyy_15_0, Wyy_15_0);
       vector32 Wxy_14_0 = rshift32_vv(Wxy_13_0, Wxx_11_0);
       vector32 Wxy_15_pack_0 = Wxy_14_0;
-
       // max Wxy_15_0 <= (Wxy_15_pack_1 , Wxy_15_pack_0)
       vector32 Wxy_15_0_cotmp_1 = max32_vv(Wxy_15_pack_1, Wxy_15_pack_0);
       vector32 Wxy_15_0 = Wxy_15_0_cotmp_1;
@@ -271,7 +319,6 @@ void Resp_5(const Image<vector32>& in, Image<vector32>& out
       vector32 Wxy_16_0 = Wxy_16_0_cotmp_1;
 
       vector32 Det_18_0 = mult32_vv(Wxy_16_0, Wxy_16_0);
-
       vector32 Det_19_0 = rshift32_vv(Det_18_0, in1x_12_0);
       vector32 Wyy_17_0 = rshift32_vv(Wyy_16_0, Wxx_11_0);
       vector32 Wyy_18_pack_0 = Wyy_17_0;
@@ -304,9 +351,12 @@ void Resp_5(const Image<vector32>& in, Image<vector32>& out
       vector32 Resp_31_0 = Resp_31_0_cotmp_1;
 
       vector32 Resp_32_0 = Resp_31_0;
-      out(x,y,0) = Resp_32_0;
+      out_ptr[y*IN_WIDTH*OUT_CHANNELS + x*OUT_CHANNELS + 0] = Resp_32_0;
     }
   }
+  
+  // End SAIF power toggle data capture
+  set_power_toggle(POWER_TOGGLE_OFF);
 } // END Resp_5
 
 
@@ -317,6 +367,15 @@ void scheduledIRNode_28(const Image<vector32>& in, Image<vector32>& out
   
   // Set up the constant values
   
+  const vector32 *in_ptr = in.mData; // use direct access to speed up inner loop
+  vector32 *out_ptr = out.mData; // use direct access to speed up inner loop
+  const int IN_WIDTH = in.width();
+  const int IN_HEIGHT = in.height();
+  const int IN_CHANNELS = 3; // use static value to allow more compiler optimization
+  const int OUT_CHANNELS = 3; /// use static value to allow more compiler optimization
+  
+  // Turn on SAIF power toggle data capture
+  set_power_toggle(POWER_TOGGLE_ON);
   for(int y = 0; y < in.height(); y++){
     // declare the registers storing the stencil window
     register vector32 special0_pp_0_0_2 asm("v32r0");
@@ -325,21 +384,24 @@ void scheduledIRNode_28(const Image<vector32>& in, Image<vector32>& out
     
     // load the stencil window for each scan of row
     
-    for(int x = 0; x < in.width(); x++){
+    for(int x = 0; x < IN_WIDTH; x++){
       // shift the stencil window, and load the new input pixel
       
       // load the update stencil
-      unsigned idx = x + 0;
-      if (idx < in.width()) {
-        special0_pp_0_0_2 = in(idx, y+0, 2);
-        special0_pp_0_0_1 = in(idx, y+0, 1);
-        special0_pp_0_0_0 = in(idx, y+0, 0);
+      int idx = x + 0;
+      if (idx < IN_WIDTH) {
+        #pragma frequency_hint FREQUENT
+        // not on X boundry, common case
+        
+        special0_pp_0_0_2 = in_ptr[(y+0)*IN_WIDTH*IN_CHANNELS + idx*IN_CHANNELS + 2];
+        special0_pp_0_0_1 = in_ptr[(y+0)*IN_WIDTH*IN_CHANNELS + idx*IN_CHANNELS + 1];
+        special0_pp_0_0_0 = in_ptr[(y+0)*IN_WIDTH*IN_CHANNELS + idx*IN_CHANNELS + 0];
       } else {
-        special0_pp_0_0_2 = in(idx - in.width(), y+0, 2);
+        special0_pp_0_0_2 = in(idx - IN_WIDTH, y+0, 2);
         special0_pp_0_0_2 = getr32_vv(special0_pp_0_0_2);
-        special0_pp_0_0_1 = in(idx - in.width(), y+0, 1);
+        special0_pp_0_0_1 = in(idx - IN_WIDTH, y+0, 1);
         special0_pp_0_0_1 = getr32_vv(special0_pp_0_0_1);
-        special0_pp_0_0_0 = in(idx - in.width(), y+0, 0);
+        special0_pp_0_0_0 = in(idx - IN_WIDTH, y+0, 0);
         special0_pp_0_0_0 = getr32_vv(special0_pp_0_0_0);
       }
       
@@ -347,12 +409,16 @@ void scheduledIRNode_28(const Image<vector32>& in, Image<vector32>& out
       vector32 cropSpecial0Node_10_0 = special0_pp_0_0_0;
       vector32 cropSpecial0Node_10_1 = special0_pp_0_0_1;
       vector32 cropSpecial0Node_10_2 = special0_pp_0_0_2;
-      out(x,y,2) = cropSpecial0Node_10_2;
-      out(x,y,1) = cropSpecial0Node_10_1;
-      out(x,y,0) = cropSpecial0Node_10_0;
+      out_ptr[y*IN_WIDTH*OUT_CHANNELS + x*OUT_CHANNELS + 2] = cropSpecial0Node_10_2;
+      out_ptr[y*IN_WIDTH*OUT_CHANNELS + x*OUT_CHANNELS + 1] = cropSpecial0Node_10_1;
+      out_ptr[y*IN_WIDTH*OUT_CHANNELS + x*OUT_CHANNELS + 0] = cropSpecial0Node_10_0;
     }
   }
+  
+  // End SAIF power toggle data capture
+  set_power_toggle(POWER_TOGGLE_OFF);
 } // END scheduledIRNode_28
+
 
 void downCast_15(const Image<vector32>& in, Image<vector32>& out
 	, unsigned int tap_G1_0_s
@@ -380,15 +446,16 @@ void downCast_15(const Image<vector32>& in, Image<vector32>& out
   // Set up the constant values
   register vector32 c_32767_0 asm("v32r6"); // keep in the register
   c_32767_0 = mv32_sv(32767);
-
-  vector32 *in_ptr = in.mData;
-  vector32 *out_ptr = out.mData;
-  const int w = in.width();
-  const int c = in.channels();
+  
+  const vector32 *in_ptr = in.mData; // use direct access to speed up inner loop
+  vector32 *out_ptr = out.mData; // use direct access to speed up inner loop
+  const int IN_WIDTH = in.width();
+  const int IN_HEIGHT = in.height();
+  const int IN_CHANNELS = 1; // use static value to allow more compiler optimization
+  const int OUT_CHANNELS = 1; /// use static value to allow more compiler optimization
   
   // Turn on SAIF power toggle data capture
   set_power_toggle(POWER_TOGGLE_ON);
-
   for(int y = 0; y < in.height(); y++){
     // declare the registers storing the stencil window
     register vector32 downCast_20_pp_4_0 asm("v32r7");
@@ -398,23 +465,14 @@ void downCast_15(const Image<vector32>& in, Image<vector32>& out
     register vector32 downCast_20_pp_0_0 asm("v32r11");
     
     // load the stencil window for each scan of row
-    //downCast_20_pp_1_0 = in(in.width() -2, y+0, 0);
-    downCast_20_pp_1_0 = in_ptr[(y+0)*w + (w-2) + 0];
+    downCast_20_pp_1_0 = in_ptr[(y+0)*IN_WIDTH*IN_CHANNELS + (IN_WIDTH -2)*IN_CHANNELS + 0];
     downCast_20_pp_1_0 = getl32_vv(downCast_20_pp_1_0);
-
-    //downCast_20_pp_2_0 = in(in.width() -1, y+0, 0);
-    downCast_20_pp_2_0 = in_ptr[(y+0)*w + (w-1) + 0];
+    downCast_20_pp_2_0 = in_ptr[(y+0)*IN_WIDTH*IN_CHANNELS + (IN_WIDTH -1)*IN_CHANNELS + 0];
     downCast_20_pp_2_0 = getl32_vv(downCast_20_pp_2_0);
-
-    //downCast_20_pp_3_0 = in(0, y+0, 0);
-    downCast_20_pp_3_0 = in_ptr[(y+0)*w + 0 + 0];
-
-    //downCast_20_pp_4_0 = in(1, y+0, 0);
-    downCast_20_pp_4_0 = in_ptr[(y+0)*w + 1 + 0];
-
-    for(int x = 0; x < w; x++){
-
-
+    downCast_20_pp_3_0 = in_ptr[(y+0)*IN_WIDTH*IN_CHANNELS + (0)*IN_CHANNELS + 0];
+    downCast_20_pp_4_0 = in_ptr[(y+0)*IN_WIDTH*IN_CHANNELS + (1)*IN_CHANNELS + 0];
+    
+    for(int x = 0; x < IN_WIDTH; x++){
       // shift the stencil window, and load the new input pixel
       downCast_20_pp_0_0 = downCast_20_pp_1_0;
       downCast_20_pp_1_0 = downCast_20_pp_2_0;
@@ -422,14 +480,14 @@ void downCast_15(const Image<vector32>& in, Image<vector32>& out
       downCast_20_pp_3_0 = downCast_20_pp_4_0;
       
       // load the update stencil
-      unsigned idx = x + 2;
-      if (idx < w) {
-#pragma frequency_hint FREQUENT
-        //downCast_20_pp_4_0 = in(idx, y+0, 0);
-	downCast_20_pp_4_0 = in_ptr[(y+0)*w + idx + 0];
+      int idx = x + 2;
+      if (idx < IN_WIDTH) {
+        #pragma frequency_hint FREQUENT
+        // not on X boundry, common case
+        
+        downCast_20_pp_4_0 = in_ptr[(y+0)*IN_WIDTH*IN_CHANNELS + idx*IN_CHANNELS + 0];
       } else {
-        //downCast_20_pp_4_0 = in(idx - in.width(), y+0, 0);
-	downCast_20_pp_4_0 = in_ptr[(y+0)*w + (idx-w) + 0];
+        downCast_20_pp_4_0 = in(idx - IN_WIDTH, y+0, 0);
         downCast_20_pp_4_0 = getr32_vv(downCast_20_pp_4_0);
       }
       
@@ -478,13 +536,14 @@ void downCast_15(const Image<vector32>& in, Image<vector32>& out
       vector32 convolve_1_5__96_0 = convolve_1_5__96_0_cotmp_1;
 
       vector32 downCast_38_0 = convolve_1_5__96_0;
-      out_ptr[(y+0)*w + x + 0] = downCast_38_0;
+      out_ptr[y*IN_WIDTH*OUT_CHANNELS + x*OUT_CHANNELS + 0] = downCast_38_0;
     }
   }
-
+  
   // End SAIF power toggle data capture
   set_power_toggle(POWER_TOGGLE_OFF);
-} // END downCast_15 
+} // END downCast_15
+
 
 void NMS_10(const Image<vector32>& in, Image<vector32>& out
 	, signed int tap_Peak_0_s
@@ -500,6 +559,15 @@ void NMS_10(const Image<vector32>& in, Image<vector32>& out
   register vector32 c_255_0 asm("v32r2"); // keep in the register
   c_255_0 = mv32_sv(255);
   
+  const vector32 *in_ptr = in.mData; // use direct access to speed up inner loop
+  vector32 *out_ptr = out.mData; // use direct access to speed up inner loop
+  const int IN_WIDTH = in.width();
+  const int IN_HEIGHT = in.height();
+  const int IN_CHANNELS = 1; // use static value to allow more compiler optimization
+  const int OUT_CHANNELS = 1; /// use static value to allow more compiler optimization
+  
+  // Turn on SAIF power toggle data capture
+  set_power_toggle(POWER_TOGGLE_ON);
   for(int y = 0; y < in.height(); y++){
     // declare the registers storing the stencil window
     register vector32 Resp_32_pp_2_2 asm("v32r3");
@@ -513,17 +581,32 @@ void NMS_10(const Image<vector32>& in, Image<vector32>& out
     register vector32 Resp_32_pp_0_0 asm("v32r11");
     
     // load the stencil window for each scan of row
-    Resp_32_pp_1_2 = in(in.width() -1, y+1, 0);
-    Resp_32_pp_1_2 = getl32_vv(Resp_32_pp_1_2);
-    Resp_32_pp_1_1 = in(in.width() -1, y+0, 0);
-    Resp_32_pp_1_1 = getl32_vv(Resp_32_pp_1_1);
-    Resp_32_pp_1_0 = in(in.width() -1, y+-1, 0);
-    Resp_32_pp_1_0 = getl32_vv(Resp_32_pp_1_0);
-    Resp_32_pp_2_2 = in(0, y+1, 0);
-    Resp_32_pp_2_1 = in(0, y+0, 0);
-    Resp_32_pp_2_0 = in(0, y+-1, 0);
+    if (y + -1 >= 0 && y + 1 < IN_HEIGHT) {
+      #pragma frequency_hint FREQUENT
+      // not on Y boundry, use direct access
+      
+      Resp_32_pp_1_2 = in_ptr[(y+1)*IN_WIDTH*IN_CHANNELS + (IN_WIDTH -1)*IN_CHANNELS + 0];
+      Resp_32_pp_1_2 = getl32_vv(Resp_32_pp_1_2);
+      Resp_32_pp_1_1 = in_ptr[(y+0)*IN_WIDTH*IN_CHANNELS + (IN_WIDTH -1)*IN_CHANNELS + 0];
+      Resp_32_pp_1_1 = getl32_vv(Resp_32_pp_1_1);
+      Resp_32_pp_1_0 = in_ptr[(y+-1)*IN_WIDTH*IN_CHANNELS + (IN_WIDTH -1)*IN_CHANNELS + 0];
+      Resp_32_pp_1_0 = getl32_vv(Resp_32_pp_1_0);
+      Resp_32_pp_2_2 = in_ptr[(y+1)*IN_WIDTH*IN_CHANNELS + (0)*IN_CHANNELS + 0];
+      Resp_32_pp_2_1 = in_ptr[(y+0)*IN_WIDTH*IN_CHANNELS + (0)*IN_CHANNELS + 0];
+      Resp_32_pp_2_0 = in_ptr[(y+-1)*IN_WIDTH*IN_CHANNELS + (0)*IN_CHANNELS + 0];
+    } else {
+      Resp_32_pp_1_2 = in(IN_WIDTH -1, y+1, 0);
+      Resp_32_pp_1_2 = getl32_vv(Resp_32_pp_1_2);
+      Resp_32_pp_1_1 = in(IN_WIDTH -1, y+0, 0);
+      Resp_32_pp_1_1 = getl32_vv(Resp_32_pp_1_1);
+      Resp_32_pp_1_0 = in(IN_WIDTH -1, y+-1, 0);
+      Resp_32_pp_1_0 = getl32_vv(Resp_32_pp_1_0);
+      Resp_32_pp_2_2 = in(0, y+1, 0);
+      Resp_32_pp_2_1 = in(0, y+0, 0);
+      Resp_32_pp_2_0 = in(0, y+-1, 0);
+    }
     
-    for(int x = 0; x < in.width(); x++){
+    for(int x = 0; x < IN_WIDTH; x++){
       // shift the stencil window, and load the new input pixel
       Resp_32_pp_0_2 = Resp_32_pp_1_2;
       Resp_32_pp_0_1 = Resp_32_pp_1_1;
@@ -533,17 +616,29 @@ void NMS_10(const Image<vector32>& in, Image<vector32>& out
       Resp_32_pp_1_0 = Resp_32_pp_2_0;
       
       // load the update stencil
-      unsigned idx = x + 1;
-      if (idx < in.width()) {
-        Resp_32_pp_2_2 = in(idx, y+1, 0);
-        Resp_32_pp_2_1 = in(idx, y+0, 0);
-        Resp_32_pp_2_0 = in(idx, y+-1, 0);
+      int idx = x + 1;
+      if (idx < IN_WIDTH) {
+        #pragma frequency_hint FREQUENT
+        // not on X boundry, common case
+        
+        if (y + -1 >= 0 && y + 1 < IN_HEIGHT) {
+          #pragma frequency_hint FREQUENT
+          // not on Y boundry, use direct access
+          
+          Resp_32_pp_2_2 = in_ptr[(y+1)*IN_WIDTH*IN_CHANNELS + idx*IN_CHANNELS + 0];
+          Resp_32_pp_2_1 = in_ptr[(y+0)*IN_WIDTH*IN_CHANNELS + idx*IN_CHANNELS + 0];
+          Resp_32_pp_2_0 = in_ptr[(y+-1)*IN_WIDTH*IN_CHANNELS + idx*IN_CHANNELS + 0];
+        } else {
+          Resp_32_pp_2_2 = in(idx, y+1, 0);
+          Resp_32_pp_2_1 = in(idx, y+0, 0);
+          Resp_32_pp_2_0 = in(idx, y+-1, 0);
+        }
       } else {
-        Resp_32_pp_2_2 = in(idx - in.width(), y+1, 0);
+        Resp_32_pp_2_2 = in(idx - IN_WIDTH, y+1, 0);
         Resp_32_pp_2_2 = getr32_vv(Resp_32_pp_2_2);
-        Resp_32_pp_2_1 = in(idx - in.width(), y+0, 0);
+        Resp_32_pp_2_1 = in(idx - IN_WIDTH, y+0, 0);
         Resp_32_pp_2_1 = getr32_vv(Resp_32_pp_2_1);
-        Resp_32_pp_2_0 = in(idx - in.width(), y+-1, 0);
+        Resp_32_pp_2_0 = in(idx - IN_WIDTH, y+-1, 0);
         Resp_32_pp_2_0 = getr32_vv(Resp_32_pp_2_0);
       }
       
@@ -562,9 +657,12 @@ void NMS_10(const Image<vector32>& in, Image<vector32>& out
       vector32 Wxx_25_0 = c_0_0;
       vector32 NMS_10_0 = mux32_vv(Pk_16_0, NMS_5_0, Wxx_25_0);
       vector32 NMS_11_0 = NMS_10_0;
-      out(x,y,0) = NMS_11_0;
+      out_ptr[y*IN_WIDTH*OUT_CHANNELS + x*OUT_CHANNELS + 0] = NMS_11_0;
     }
   }
+  
+  // End SAIF power toggle data capture
+  set_power_toggle(POWER_TOGGLE_OFF);
 } // END NMS_10
 
 
@@ -595,6 +693,15 @@ void downCast_13(const Image<vector32>& in, Image<vector32>& out
   register vector32 c_32767_0 asm("v32r6"); // keep in the register
   c_32767_0 = mv32_sv(32767);
   
+  const vector32 *in_ptr = in.mData; // use direct access to speed up inner loop
+  vector32 *out_ptr = out.mData; // use direct access to speed up inner loop
+  const int IN_WIDTH = in.width();
+  const int IN_HEIGHT = in.height();
+  const int IN_CHANNELS = 1; // use static value to allow more compiler optimization
+  const int OUT_CHANNELS = 1; /// use static value to allow more compiler optimization
+  
+  // Turn on SAIF power toggle data capture
+  set_power_toggle(POWER_TOGGLE_ON);
   for(int y = 0; y < in.height(); y++){
     // declare the registers storing the stencil window
     register vector32 lambda_arris_v3lua_line43_51_pp_0_4 asm("v32r7");
@@ -604,28 +711,48 @@ void downCast_13(const Image<vector32>& in, Image<vector32>& out
     register vector32 lambda_arris_v3lua_line43_51_pp_0_0 asm("v32r11");
     
     // load the stencil window for each scan of row
+    if (y + -2 >= 0 && y + 2 < IN_HEIGHT) {
+      #pragma frequency_hint FREQUENT
+      // not on Y boundry, use direct access
+      
+    } else {
+    }
     
-    for(int x = 0; x < in.width(); x++){
+    for(int x = 0; x < IN_WIDTH; x++){
       // shift the stencil window, and load the new input pixel
       
       // load the update stencil
-      unsigned idx = x + 0;
-      if (idx < in.width()) {
-        lambda_arris_v3lua_line43_51_pp_0_4 = in(idx, y+2, 0);
-        lambda_arris_v3lua_line43_51_pp_0_3 = in(idx, y+1, 0);
-        lambda_arris_v3lua_line43_51_pp_0_2 = in(idx, y+0, 0);
-        lambda_arris_v3lua_line43_51_pp_0_1 = in(idx, y+-1, 0);
-        lambda_arris_v3lua_line43_51_pp_0_0 = in(idx, y+-2, 0);
+      int idx = x + 0;
+      if (idx < IN_WIDTH) {
+        #pragma frequency_hint FREQUENT
+        // not on X boundry, common case
+        
+        if (y + -2 >= 0 && y + 2 < IN_HEIGHT) {
+          #pragma frequency_hint FREQUENT
+          // not on Y boundry, use direct access
+          
+          lambda_arris_v3lua_line43_51_pp_0_4 = in_ptr[(y+2)*IN_WIDTH*IN_CHANNELS + idx*IN_CHANNELS + 0];
+          lambda_arris_v3lua_line43_51_pp_0_3 = in_ptr[(y+1)*IN_WIDTH*IN_CHANNELS + idx*IN_CHANNELS + 0];
+          lambda_arris_v3lua_line43_51_pp_0_2 = in_ptr[(y+0)*IN_WIDTH*IN_CHANNELS + idx*IN_CHANNELS + 0];
+          lambda_arris_v3lua_line43_51_pp_0_1 = in_ptr[(y+-1)*IN_WIDTH*IN_CHANNELS + idx*IN_CHANNELS + 0];
+          lambda_arris_v3lua_line43_51_pp_0_0 = in_ptr[(y+-2)*IN_WIDTH*IN_CHANNELS + idx*IN_CHANNELS + 0];
+        } else {
+          lambda_arris_v3lua_line43_51_pp_0_4 = in(idx, y+2, 0);
+          lambda_arris_v3lua_line43_51_pp_0_3 = in(idx, y+1, 0);
+          lambda_arris_v3lua_line43_51_pp_0_2 = in(idx, y+0, 0);
+          lambda_arris_v3lua_line43_51_pp_0_1 = in(idx, y+-1, 0);
+          lambda_arris_v3lua_line43_51_pp_0_0 = in(idx, y+-2, 0);
+        }
       } else {
-        lambda_arris_v3lua_line43_51_pp_0_4 = in(idx - in.width(), y+2, 0);
+        lambda_arris_v3lua_line43_51_pp_0_4 = in(idx - IN_WIDTH, y+2, 0);
         lambda_arris_v3lua_line43_51_pp_0_4 = getr32_vv(lambda_arris_v3lua_line43_51_pp_0_4);
-        lambda_arris_v3lua_line43_51_pp_0_3 = in(idx - in.width(), y+1, 0);
+        lambda_arris_v3lua_line43_51_pp_0_3 = in(idx - IN_WIDTH, y+1, 0);
         lambda_arris_v3lua_line43_51_pp_0_3 = getr32_vv(lambda_arris_v3lua_line43_51_pp_0_3);
-        lambda_arris_v3lua_line43_51_pp_0_2 = in(idx - in.width(), y+0, 0);
+        lambda_arris_v3lua_line43_51_pp_0_2 = in(idx - IN_WIDTH, y+0, 0);
         lambda_arris_v3lua_line43_51_pp_0_2 = getr32_vv(lambda_arris_v3lua_line43_51_pp_0_2);
-        lambda_arris_v3lua_line43_51_pp_0_1 = in(idx - in.width(), y+-1, 0);
+        lambda_arris_v3lua_line43_51_pp_0_1 = in(idx - IN_WIDTH, y+-1, 0);
         lambda_arris_v3lua_line43_51_pp_0_1 = getr32_vv(lambda_arris_v3lua_line43_51_pp_0_1);
-        lambda_arris_v3lua_line43_51_pp_0_0 = in(idx - in.width(), y+-2, 0);
+        lambda_arris_v3lua_line43_51_pp_0_0 = in(idx - IN_WIDTH, y+-2, 0);
         lambda_arris_v3lua_line43_51_pp_0_0 = getr32_vv(lambda_arris_v3lua_line43_51_pp_0_0);
       }
       
@@ -674,9 +801,12 @@ void downCast_13(const Image<vector32>& in, Image<vector32>& out
       vector32 convolve_1_5__63_0 = convolve_1_5__63_0_cotmp_1;
 
       vector32 downCast_20_0 = convolve_1_5__63_0;
-      out(x,y,0) = downCast_20_0;
+      out_ptr[y*IN_WIDTH*OUT_CHANNELS + x*OUT_CHANNELS + 0] = downCast_20_0;
     }
   }
+  
+  // End SAIF power toggle data capture
+  set_power_toggle(POWER_TOGGLE_OFF);
 } // END downCast_13
 
 
