@@ -3,6 +3,7 @@
 #include "image.h"
 #include "arch.h"
 #include "pipeline.h"
+#include "data.h"
 #include <xtensa/sim.h>
 #include <xtensa/hal.h>
 #include <xtensa/config/core.h>
@@ -35,7 +36,7 @@ int main(int argc, char* argv[])
 
   Image<vector32> downCast_20_v(width/N, height, 1, zero_v);  
 
-  //downCast_20_v.loadDAT("/horowitz/users/jingpu/projects/vision_core/clib/downCast_20_v.dat");
+  downCast_20_v.loadDAT(downCast_20_v_dat);
 
   setup_power_toggle();
 
@@ -48,9 +49,8 @@ int main(int argc, char* argv[])
   //xt_iss_client_command("isa_profile", "disable");
   //xt_iss_switch_mode(XT_ISS_FUNCTIONAL);
 
-  //downCast_38_v.cmpDAT("/horowitz/users/jingpu/projects/vision_core/clib/downCast_38_v.dat");  
+  downCast_38_v.cmpDAT(downCast_38_v_dat);  
 
 
-  pass("Diag Passed\n");
   return 0;
 }

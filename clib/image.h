@@ -28,9 +28,9 @@ public:
   void load(const char* filename) { readBMP(filename); }
   void save(const char* filename) const { saveBMP(filename); }
   
-  void dumpDAT(const char* filename);
-  void loadDAT(const char* filename);
-  void cmpDAT(const char* filename);
+  void dumpDAT(const char* var_name);
+  void loadDAT(const unsigned char *data);
+  void cmpDAT(const unsigned char *data);
 
   bool equal(const Image<T> &img) const;
 
@@ -187,44 +187,48 @@ void Image<T>::saveBMP(const char* filename) const
 
 
 template <typename T>
-void Image<T>::dumpDAT(const char* filename)
+void Image<T>::dumpDAT(const char* var_name)
 {
   FILE *fp;
-  fp= fopen(filename,"wb");
-  size_t nElem = mWidth * mHeight * mChannels;
-  fwrite(mData, nElem, sizeof(T),fp); 
+  size_t size = mWidth * mHeight * mChannels * sizeof(T);
+  unsigned char *data = (unsigned char *)mData;
+  const int item_per_line = 12;
+
+  fp= fopen("data.h","a");
+  fprintf(fp, "static unsigned char\n");
+  fprintf(fp, "\t%s[] = \n", var_name);
+  fprintf(fp, "{");
+  for (int i = 0; i < size; i++) {
+    if (i % item_per_line == 0)
+      fprintf(fp, "\n");
+    fprintf(fp, "0x%02X, ", data[i]);
+  }
+  fprintf(fp, "\n};\n\n");
   fclose(fp);
 }
 
 
 template <typename T>
-void Image<T>::loadDAT(const char* filename)
+void Image<T>::loadDAT(const unsigned char *data)
 {
-  FILE *fp;
-  fp = fopen(filename,"rb");
-  size_t nElem = mWidth * mHeight * mChannels;
-  fread(mData, nElem, sizeof(T),fp); 
-  fclose(fp);
+  size_t size  = mWidth * mHeight * mChannels * sizeof(T);
+  memcpy(mData, data, size);
 }
 
 
 template <typename T>
-void Image<T>::cmpDAT(const char* filename)
+void Image<T>::cmpDAT(const unsigned char *data)
 {
-  FILE *fp;
-  fp = fopen(filename,"rb");
-  size_t nElem = mWidth * mHeight * mChannels;
-  T* fData = new T[nElem];
-  fread(mData, nElem, sizeof(T),fp); 
-  fclose(fp);
+  size_t size = mWidth * mHeight * mChannels * sizeof(T);
 
-  int res = memcmp (mData, fData, nElem * sizeof(T));
-  if (res == 0)
+  int res = memcmp (mData, data, size);
+  if (res == 0){
     pass("Image compare pass.");
-  else 
+    printf("Image compare pass.\n");
+  } else {
     fail("Image compare fail.");
-
-  delete[] fData;
+    printf("Image compare fail.\n");
+  }
 }
 
 #endif

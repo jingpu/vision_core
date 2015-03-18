@@ -398,6 +398,10 @@ def write_main_tie(w, dag):
   w.writeln("setup_power_toggle();")
   w.writeln()
 
+  w.writeln('// delete the existing data file')
+  w.writeln('FILE * fp = fopen("data.h", "w");')
+  w.writeln('fclose(fp);')
+
   head = dag.head # Get the edge which points to the first kernel
   w.writeln("int width = 256;  // TODO change to match input image")
   w.writeln("int height = 256;  // TODO change to match input image")
@@ -433,7 +437,7 @@ def write_main_tie(w, dag):
   w.writeln("// Create the input image in vector format")
   w.writeln("Image<vector32> {}_v(width/N, height, channels, zero_v);".format(dag.head))
   w.writeln("shuffle_s2v({0}_ref, {0}_v);".format(dag.head))
-  w.writeln('{0}_v.dumpDAT("{0}_v.dat");'.format(dag.head))
+  w.writeln('{0}_v.dumpDAT("{0}_v_dat");'.format(dag.head))
 
   w.writeln("")
   w.writeln("// Construct the pipeline of kernels")
@@ -446,6 +450,8 @@ def write_main_tie(w, dag):
     channels = len(dpdadag.expand_range(k.edges[k.sink].dim))
     w.writeln("Image<vector32> {0}_v(width/N, height, {1}, zero_v);".format(k.sink, channels))
     w.writeln("Image<int> {0}(width, height, {1}, 0);".format(k.sink, channels))
+    w.writeln('xt_iss_switch_mode(XT_ISS_CYCLE_ACCURATE);')
+    w.writeln('xt_iss_client_command("isa_profile", "enable");')
 
     # Invoke the kernel
     w.writeln("{k}({src}_v, {sink}_v".format(k=k.name, src=head, sink=k.sink))
@@ -453,9 +459,12 @@ def write_main_tie(w, dag):
       for indices in dpdadag.expand_range(k.edges[tapName].dim):
         w.writeln("\t, {sig}".format(sig=compile.mangle((tapName, indices))))
     w.writeln(");")
+
+    w.writeln('xt_iss_client_command("isa_profile", "disable");')
+    w.writeln('xt_iss_switch_mode(XT_ISS_FUNCTIONAL);')
     w.writeln("shuffle_v2s({0}_v, {0});".format(k.sink))
     w.writeln('//{0}.save("{0}.bmp");'.format(k.sink))
-    w.writeln('{0}_v.dumpDAT("{0}_v.dat");'.format(k.sink))
+    w.writeln('{0}_v.dumpDAT("{0}_v_dat");'.format(k.sink))
     w.writeln("") 
 
     # go to the next kernel
