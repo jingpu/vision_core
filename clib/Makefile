@@ -35,7 +35,7 @@ TDK_DIR = ../tie_out_n16
 #COREFLAGS= --xtensa-system=$(XTENSA_SYSTEM) --xtensa-core=$(XTENSA_CORE) 
 COREFLAGS= --xtensa-params=$(TDK_DIR)
 
-CFLAGS =  $(COREFLAGS) -O2 -g -fexceptions -keep_min
+CFLAGS =  $(COREFLAGS) -O3 -fno-unroll-loops -g -fexceptions -keep_min
 APP_CFLAGS = $(COREFLAGS) $(LSPFLAGS) -g -lreftb
 
 ##############################

@@ -42,12 +42,12 @@ int main(int argc, char* argv[])
 
 
   Image<vector32> downCast_38_v(width/N, height, 1, zero_v); 
-  //xt_iss_switch_mode(XT_ISS_CYCLE_ACCURATE);
-  //xt_iss_client_command("isa_profile", "enable");
+  xt_iss_switch_mode(XT_ISS_CYCLE_ACCURATE);
+  xt_iss_client_command("isa_profile", "enable");
   downCast_15(downCast_20_v, downCast_38_v
 	      , tap_G1_0, tap_G0_0, tap_G2_0, tap_G4_0, tap_G3_0, tap_R_0);
-  //xt_iss_client_command("isa_profile", "disable");
-  //xt_iss_switch_mode(XT_ISS_FUNCTIONAL);
+  xt_iss_client_command("isa_profile", "disable");
+  xt_iss_switch_mode(XT_ISS_FUNCTIONAL);
 
   downCast_38_v.cmpDAT(downCast_38_v_dat);  
 

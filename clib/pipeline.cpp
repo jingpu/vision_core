@@ -37,9 +37,9 @@ void lambda_arris_v3lua_line43_10(const Image<vector32>& in, Image<vector32>& ou
   set_power_toggle(POWER_TOGGLE_ON);
   for(int y = 0; y < in.height(); y++){
     // declare the registers storing the stencil window
-    register vector32 cropSpecial0Node_10_pp_0_0_2 asm("v32r5");
-    register vector32 cropSpecial0Node_10_pp_0_0_1 asm("v32r6");
-    register vector32 cropSpecial0Node_10_pp_0_0_0 asm("v32r7");
+    register vector32 cropSpecial0Node_10_pp_0_0_2;
+    register vector32 cropSpecial0Node_10_pp_0_0_1;
+    register vector32 cropSpecial0Node_10_pp_0_0_0;
     
     // load the stencil window for each scan of row
     
@@ -378,9 +378,9 @@ void scheduledIRNode_28(const Image<vector32>& in, Image<vector32>& out
   set_power_toggle(POWER_TOGGLE_ON);
   for(int y = 0; y < in.height(); y++){
     // declare the registers storing the stencil window
-    register vector32 special0_pp_0_0_2 asm("v32r0");
-    register vector32 special0_pp_0_0_1 asm("v32r1");
-    register vector32 special0_pp_0_0_0 asm("v32r2");
+    register vector32 special0_pp_0_0_2;
+    register vector32 special0_pp_0_0_1;
+    register vector32 special0_pp_0_0_0;
     
     // load the stencil window for each scan of row
     
@@ -704,11 +704,11 @@ void downCast_13(const Image<vector32>& in, Image<vector32>& out
   set_power_toggle(POWER_TOGGLE_ON);
   for(int y = 0; y < in.height(); y++){
     // declare the registers storing the stencil window
-    register vector32 lambda_arris_v3lua_line43_51_pp_0_4 asm("v32r7");
-    register vector32 lambda_arris_v3lua_line43_51_pp_0_3 asm("v32r8");
-    register vector32 lambda_arris_v3lua_line43_51_pp_0_2 asm("v32r9");
-    register vector32 lambda_arris_v3lua_line43_51_pp_0_1 asm("v32r10");
-    register vector32 lambda_arris_v3lua_line43_51_pp_0_0 asm("v32r11");
+    register vector32 lambda_arris_v3lua_line43_51_pp_0_4;
+    register vector32 lambda_arris_v3lua_line43_51_pp_0_3;
+    register vector32 lambda_arris_v3lua_line43_51_pp_0_2;
+    register vector32 lambda_arris_v3lua_line43_51_pp_0_1;
+    register vector32 lambda_arris_v3lua_line43_51_pp_0_0;
     
     // load the stencil window for each scan of row
     if (y + -2 >= 0 && y + 2 < IN_HEIGHT) {

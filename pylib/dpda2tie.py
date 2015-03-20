@@ -125,17 +125,6 @@ def write_kernel_tie(w, k, code_type):
   w.writeln("for(int y = 0; y < in.height(); y++){")
   w.indent()
 
-  w.writeln("// declare the registers storing the stencil window")
-  for indices in dpdadag.expand_range(k.edges[startName].dim):
-    w.writeln("register vector32 {sig} asm(\"v32r{idx}\");".format(
-            sig=compile.mangle((startName, indices)), idx=reg_idx))
-    reg_idx += 1
-  
-  w.writeln("")
-
-  # load first stencil in a row from the image
-  w.writeln("// load the stencil window for each scan of row")
-
   # calculate the range of X
   x_dim =  input_dim[0]  # tuple of (start, end)
   if (x_dim[1] < x_dim[0]):
@@ -152,6 +141,27 @@ def write_kernel_tie(w, k, code_type):
   if (y_max > 0):
       y_conditions.append("y + {} < IN_HEIGHT".format(y_max))
   y_cond_string = str.join(' && ', y_conditions)
+
+
+  w.writeln("// declare the registers storing the stencil window")
+  for indices in dpdadag.expand_range(k.edges[startName].dim):
+      if (len(x_range) == 0):
+          # with O3 optimization, C compiler does loop pipelining if there
+          # is no shifting of stencil window (i.e. len(x_range)==0), and it
+          # doesn't like me to allocate registers in this case
+          w.writeln("register vector32 {sig};".format(
+                  sig=compile.mangle((startName, indices))))
+      else:
+          w.writeln("register vector32 {sig} asm(\"v32r{idx}\");".format(
+                  sig=compile.mangle((startName, indices)), idx=reg_idx))
+          reg_idx += 1
+  
+  w.writeln("")
+
+  # load first stencil in a row from the image
+  w.writeln("// load the stencil window for each scan of row")
+
+
 
   if (y_cond_string != ""):
       w.writeln("if ({cond}) {{".format(cond=y_cond_string))
