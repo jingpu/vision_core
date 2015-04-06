@@ -15,7 +15,7 @@ int main(int argc, char* argv[])
 {
 
   int width = 256;  // TODO change to match input image
-  int height = 256;  // TODO change to match input image
+  int height = 256/16;  // TODO change to match input image
   int channels = 3;  // TODO change to match input image
 
   // Set tap values
@@ -35,19 +35,37 @@ int main(int argc, char* argv[])
   vector32 zero_v = mv32_sv(0);
 
   Image<vector32> downCast_20_v(width/N, height, 1, zero_v);  
+  Image<vector32> downCast_38_v(width/N, height, 1, zero_v); 
 
-  downCast_20_v.loadDAT(downCast_20_v_dat);
 
   setup_power_toggle();
 
 
-  Image<vector32> downCast_38_v(width/N, height, 1, zero_v); 
+
+
+#ifndef RTL_SIM
   xt_iss_switch_mode(XT_ISS_CYCLE_ACCURATE);
+#endif
+
+  // touch output data, to workaround dcache miss
+  downCast_38_v.loadDAT(downCast_38_v_dat);
+  // load input data
+  downCast_20_v.loadDAT(downCast_20_v_dat);
+  
+
+#ifndef RTL_SIM
+  xt_iss_trace_level(6);
   xt_iss_client_command("isa_profile", "enable");
+#endif
+
   downCast_15(downCast_20_v, downCast_38_v
 	      , tap_G1_0, tap_G0_0, tap_G2_0, tap_G4_0, tap_G3_0, tap_R_0);
+
+#ifndef RTL_SIM
   xt_iss_client_command("isa_profile", "disable");
+  xt_iss_trace_level(0);
   xt_iss_switch_mode(XT_ISS_FUNCTIONAL);
+#endif
 
   downCast_38_v.cmpDAT(downCast_38_v_dat);  
 

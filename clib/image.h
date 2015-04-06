@@ -14,7 +14,8 @@ public:
   T* mData;  /* HACK Just for efficient access, not secure*/
 
   Image(int width, int height, int channels, T padding);
-  ~Image() { delete[] mData; }
+  Image(T* ptr, int width, int height, int channels, T padding);
+  ~Image() { if(free) delete[] mData; }
 
   // getter and setter
   inline T& operator()(int x, int y, int c = 0);
@@ -28,6 +29,8 @@ public:
   void load(const char* filename) { readBMP(filename); }
   void save(const char* filename) const { saveBMP(filename); }
   
+  void padZeros(const Image<T> &img, int rowsTop, int rowsBottom);
+
   void dumpDAT(const char* var_name);
   void loadDAT(const unsigned char *data);
   void cmpDAT(const unsigned char *data);
@@ -39,6 +42,7 @@ private:
   int mHeight;
   int mChannels;
   T mPadding;
+  bool free;
 
   void readBMP(const char* filename);
   void saveBMP(const char* filename) const;
@@ -58,7 +62,20 @@ Image<T>::Image(int width, int height, int channels, T padding)
   mChannels = channels;
   mData = new T[mWidth * mHeight * mChannels];
   mPadding = padding;
+  free = true;
 }
+
+template <typename T>
+Image<T>::Image(T* ptr, int width, int height, int channels, T padding)
+{
+  mWidth = width;
+  mHeight = height;
+  mChannels = channels;
+  mData = ptr;
+  mPadding = padding;
+  free = false;
+}
+
 
 
 template <typename T>
@@ -193,7 +210,6 @@ void Image<T>::dumpDAT(const char* var_name)
   size_t size = mWidth * mHeight * mChannels * sizeof(T);
   unsigned char *data = (unsigned char *)mData;
   const int item_per_line = 12;
-
   fp= fopen("data.h","a");
   fprintf(fp, "static unsigned char\n");
   fprintf(fp, "\t%s[] = \n", var_name);
@@ -230,6 +246,28 @@ void Image<T>::cmpDAT(const unsigned char *data)
     printf("Image compare fail.\n");
   }
 }
+
+template <typename T>
+void Image<T>::padZeros(const Image<T> &fromImg, int rowsAbove, int rowsBelow)
+{
+  if (fromImg.height() + rowsAbove + rowsBelow != mHeight)
+    throw std::runtime_error("dimentions don't match");
+  
+  size_t dataStart  = mWidth * mChannels * sizeof(T) * rowsAbove;
+  size_t dataEnd  = mWidth * mChannels * sizeof(T) * (rowsAbove + fromImg.height());
+  size_t dataSize  = mWidth * fromImg.height() * mChannels * sizeof(T);
+  size_t endZeroSize  = mWidth *  mChannels * sizeof(T) * rowsBelow;
+
+  // pad zeros
+  if(dataStart)
+    memset(mData, 0, dataStart);
+  // copy data
+  memcpy((char *)mData + dataStart, fromImg.mData, dataSize);
+  // pad zeros
+  if(endZeroSize)
+    memset((char *)mData + dataEnd, 0, endZeroSize);
+}
+
 
 #endif
 
