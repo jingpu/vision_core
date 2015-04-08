@@ -9,20 +9,21 @@ ISS = xt-run
 
 .PHONY: all clean run
 
-TARGET = test test_rtl test_iss \
-	test_lambda.iss test_lambda.rtl \
-	test_cast13.iss test_cast13.rtl \
-	test_cast15.iss test_cast15.rtl \
-	test_resp.iss   test_resp.rtl \
-	test_nms.iss    test_nms.rtl
-RUN_TARGET = test
+TARGET = test  \
+	test_NMS_10.iss		test_NMS_10.rtl		\
+        test_downCast_13.iss	test_downCast_13.rtl	\
+	test_downCast_15.iss   	test_downCast_15.rtl 	\
+        test_Resp_5.iss   	test_Resp_5.rtl \
+        test_lambda_arris_v3lua_line43_10.iss 	test_lambda_arris_v3lua_line43_10.rtl
+
+RUN_TARGET =  	test_downCast_15.iss	
 all: $(TARGET)
 
 #############################
 # Build Flags
 #############################
 
-TDK_DIR = ../tie_out_n16
+TDK_DIR = ../tie_out_sn32
 #COREFLAGS= --xtensa-system=$(XTENSA_SYSTEM) --xtensa-core=$(XTENSA_CORE) 
 COREFLAGS= --xtensa-params=$(TDK_DIR)
 
@@ -37,8 +38,8 @@ RT_LDFLAGS  =   $(COREFLAGS)  -g -lhal -mlsp=min-rt -lreftb
 #############################
 SIM_ARGS = --xtensa-params=$(TDK_DIR) \
 	--memlimit=512  --turbo  --summary  \
-	--client_cmds="isa_profile --disable " 
-#	--mem_model --icsize=4K --dcsize=4K --dcways=1 
+	--client_cmds="isa_profile --disable " \
+	--mem_model --icsize=4K --dcsize=4K --dcways=1 
 #       --client_cmds="profile --dcmiss --cycles prof"
 #	--client_cmds="trace --level=0 trace.log" 
 TAR_ARGS = ./inp.bmp

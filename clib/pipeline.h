@@ -4,10 +4,26 @@
 #include "image.h"
 #include "arch.h"
 
+
+// Set tap values
+const unsigned int tap_Green_to_Lum_0 = 27;    // TODO change in value
+const unsigned int tap_Blue_to_Lum_0 = 91;     // TODO change in value
+const unsigned int tap_Red_to_Lum_0 = 9;      // TODO change in value
+const unsigned int tap_G0_0 = 7;      // TODO change in value
+const unsigned int tap_G1_0 = 31;      // TODO change in value
+const unsigned int tap_G2_0 = 51;     // TODO change in value
+const unsigned int tap_G3_0 = 31;      // TODO change in value
+const unsigned int tap_G4_0 = 7;      // TODO change in value
+const unsigned int tap_R_0 = 7;        // TODO change in value
+const signed int tap_K_0 = 1;  // TODO change in value
+const signed int tap_Peak_0 = 4;     // TODO change in value
+
+
 void lambda_arris_v3lua_line43_10(const Image<vector32>& in, Image<vector32>& out
 	, unsigned int tap_Green_to_Lum_0_s
 	, unsigned int tap_Blue_to_Lum_0_s
 	, unsigned int tap_Red_to_Lum_0_s
+	, unsigned int tap_R_0_s
 );
 
 void Resp_5(const Image<vector32>& in, Image<vector32>& out

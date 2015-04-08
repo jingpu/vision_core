@@ -25,7 +25,7 @@ def write_complex_op_tie(writer, op, datatype):
         writer.writeln("// {op} {dst} <= ({src})"\
                            .format(op=inst, dst=final_dst, 
                                    src=str.join(' , ', compile.mangle(op.operands))))
-        w.writeln("{dtype} {dst} = {op}32_vv({src1}, {src2});"\
+        w.writeln("{dtype} {dst} = {op}16_vv({src1}, {src2});"\
                       .format(dtype=datatype, dst=(final_dst+'_cotmp_1'), op=inst,
                               src1=compile.mangle(op.operands[0]), 
                               src2=compile.mangle(op.operands[1])))
@@ -34,7 +34,7 @@ def write_complex_op_tie(writer, op, datatype):
             dst_name = final_dst + '_cotmp_' + str(i)
             src1_name = final_dst + '_cotmp_' + str(i-1)
             src2_name = compile.mangle(op.operands[i])
-            w.writeln("{dtype} {dst} = {op}32_vv({src1}, {src2});"\
+            w.writeln("{dtype} {dst} = {op}16_vv({src1}, {src2});"\
                           .format(dtype=datatype, dst=dst_name, op=inst,
                                   src1=src1_name, src2=src2_name))
     
@@ -75,32 +75,32 @@ def write_kernel_ops(w, k, startName):
         elif op.name == "mv":
           w.writeln("{dtype} {dst} = {src};".format(dtype=dtype, dst=compile.mangle(op.result), src=compile.mangle(op.operands[0])))
         elif op.name == "add":
-          w.writeln("{dtype} {dst} = add32_vv({src});".format(dtype=dtype, dst=compile.mangle(op.result), src=str.join(', ', compile.mangle(op.operands))))
+          w.writeln("{dtype} {dst} = add16_vv({src});".format(dtype=dtype, dst=compile.mangle(op.result), src=str.join(', ', compile.mangle(op.operands))))
         elif op.name == "sub":
-          w.writeln("{dtype} {dst} = sub32_vv({src});".format(dtype=dtype, dst=compile.mangle(op.result), src=str.join(', ', compile.mangle(op.operands))))
+          w.writeln("{dtype} {dst} = sub16_vv({src});".format(dtype=dtype, dst=compile.mangle(op.result), src=str.join(', ', compile.mangle(op.operands))))
         elif op.name == "mult":
-          w.writeln("{dtype} {dst} = mult32_vv({src});".format(dtype=dtype, dst=compile.mangle(op.result), src=str.join(', ', compile.mangle(op.operands))))
+          w.writeln("{dtype} {dst} = mult16_vv({src});".format(dtype=dtype, dst=compile.mangle(op.result), src=str.join(', ', compile.mangle(op.operands))))
         elif op.name == "lshift":
-          w.writeln("{dtype} {dst} = lshift32_vv({op1}, {op2});".format(dtype=dtype, dst=compile.mangle(op.result), op1=compile.mangle(op.operands[0]), op2=compile.mangle(op.operands[1])))
+          w.writeln("{dtype} {dst} = lshift16_vv({op1}, {op2});".format(dtype=dtype, dst=compile.mangle(op.result), op1=compile.mangle(op.operands[0]), op2=compile.mangle(op.operands[1])))
         elif op.name == "rshift":
-          w.writeln("{dtype} {dst} = rshift32_vv({op1}, {op2});".format(dtype=dtype, dst=compile.mangle(op.result), op1=compile.mangle(op.operands[0]), op2=compile.mangle(op.operands[1])))
+          w.writeln("{dtype} {dst} = rshift16_vv({op1}, {op2});".format(dtype=dtype, dst=compile.mangle(op.result), op1=compile.mangle(op.operands[0]), op2=compile.mangle(op.operands[1])))
         elif op.name == "and":
-          w.writeln("{dtype} {dst} = and32_vv({op1}, {op2});".format(dtype=dtype, dst=compile.mangle(op.result), op1=compile.mangle(op.operands[0]), op2=compile.mangle(op.operands[1])))
+          w.writeln("{dtype} {dst} = and16_vv({op1}, {op2});".format(dtype=dtype, dst=compile.mangle(op.result), op1=compile.mangle(op.operands[0]), op2=compile.mangle(op.operands[1])))
         elif op.name == "or":
-          w.writeln("{dtype} {dst} = or32_vv({op1}, {op2});".format(dtype=dtype, dst=compile.mangle(op.result), op1=compile.mangle(op.operands[0]), op2=compile.mangle(op.operands[1])))
+          w.writeln("{dtype} {dst} = or16_vv({op1}, {op2});".format(dtype=dtype, dst=compile.mangle(op.result), op1=compile.mangle(op.operands[0]), op2=compile.mangle(op.operands[1])))
         elif op.name == "lt":
-          w.writeln("{dtype} {dst} = lt32_vv({op1}, {op2});".format(dtype=dtype, dst=compile.mangle(op.result), op1=compile.mangle(op.operands[0]), op2=compile.mangle(op.operands[1])))
+          w.writeln("{dtype} {dst} = lt16_vv({op1}, {op2});".format(dtype=dtype, dst=compile.mangle(op.result), op1=compile.mangle(op.operands[0]), op2=compile.mangle(op.operands[1])))
         elif op.name == "lte":
-          w.writeln("{dtype} {dst} = lte32_vv({op1}, {op2});".format(dtype=dtype, dst=compile.mangle(op.result), op1=compile.mangle(op.operands[0]), op2=compile.mangle(op.operands[1])))
+          w.writeln("{dtype} {dst} = lte16_vv({op1}, {op2});".format(dtype=dtype, dst=compile.mangle(op.result), op1=compile.mangle(op.operands[0]), op2=compile.mangle(op.operands[1])))
         elif op.name == "gt":
-          w.writeln("{dtype} {dst} = gt32_vv({op1}, {op2});".format(dtype=dtype, dst=compile.mangle(op.result), op1=compile.mangle(op.operands[0]), op2=compile.mangle(op.operands[1])))
+          w.writeln("{dtype} {dst} = gt16_vv({op1}, {op2});".format(dtype=dtype, dst=compile.mangle(op.result), op1=compile.mangle(op.operands[0]), op2=compile.mangle(op.operands[1])))
         elif op.name == "gte":
-          w.writeln("{dtype} {dst} = gte32_vv({op1}, {op2});".format(dtype=dtype, dst=compile.mangle(op.result), op1=compile.mangle(op.operands[0]), op2=compile.mangle(op.operands[1])))
+          w.writeln("{dtype} {dst} = gte16_vv({op1}, {op2});".format(dtype=dtype, dst=compile.mangle(op.result), op1=compile.mangle(op.operands[0]), op2=compile.mangle(op.operands[1])))
         elif op.name == "inv":
-          w.writeln("{dtype} {dst} = inv32_vv({src});".format(dtype=dtype, dst=compile.mangle(op.result), src=compile.mangle(op.operands[0])))
+          w.writeln("{dtype} {dst} = inv16_vv({src});".format(dtype=dtype, dst=compile.mangle(op.result), src=compile.mangle(op.operands[0])))
 
         elif op.name == "mux":
-          w.writeln("{dtype} {dst} = mux32_vv({cond}, {op1}, {op2});".format(dtype=dtype, dst=compile.mangle(op.result), \
+          w.writeln("{dtype} {dst} = mux16_vv({cond}, {op1}, {op2});".format(dtype=dtype, dst=compile.mangle(op.result), \
               cond=compile.mangle(op.operands[0]), op1=compile.mangle(op.operands[1]), op2=compile.mangle(op.operands[2])))
         else:
           print "Unhandled operator " + opKey
@@ -151,7 +151,7 @@ def write_kernel_tie(w, k, code_type):
     # TODO: handle int/float; infer datatype in parser
     for indices in dpdadag.expand_range(k.edges[tapName].dim):
         w.writeln("register vector32 {tap} asm(\"v32r{idx}\"); // keep in the register\n"
-                  "  {tap} = mv32_sv({tap}_s);"
+                  "  {tap} = mv16_sv({tap}_s);"
                   .format(tap=compile.mangle((tapName, indices)), idx=reg_idx))
         reg_idx += 1
   
@@ -163,7 +163,7 @@ def write_kernel_tie(w, k, code_type):
     # TODO: be careful here, because we need to be consistent with naming/indexing
     # TODO: handle int/float; infer datatype in parser
     w.writeln("register vector32 {sig} asm(\"v32r{idx}\"); // keep in the register\n"
-              "  {sig} = mv32_sv({val});"
+              "  {sig} = mv16_sv({val});"
               .format(sig=compile.mangle((const[0], [0])), val=const[1], idx=reg_idx))
     reg_idx += 1
   
@@ -240,7 +240,7 @@ def write_kernel_tie(w, k, code_type):
 
           w.writeln("{sig} = in_ptr[(y+{yoff})*IN_WIDTH*IN_CHANNELS + ({x})*IN_CHANNELS + {z}];".format(sig=sigName, x=x_idx, yoff=(indices[0]-k.centroid[1]+y_base_offset), z=z_idx))
           if (x_pos < 0):
-              w.writeln("{sig} = getl32_vv({sig});".format(sig=sigName))
+              w.writeln("{sig} = getl16_vv({sig});".format(sig=sigName))
 
   w.writeln("")
 
@@ -329,7 +329,7 @@ def write_kernel_tie(w, k, code_type):
 
           w.writeln("{sig} = in_ptr[(y+{yoff})*IN_WIDTH*IN_CHANNELS + (x + {xoff} - IN_WIDTH)*IN_CHANNELS + {z}];".format(sig=sigName, xoff=new_x_offset, yoff=(indices[0]-k.centroid[1]+y_base_offset), z=z_idx))
           #w.writeln("{sig} = in(x + {xoff} - IN_WIDTH, y+{yoff}, {z});".format(sig=sigName, xoff=new_x_offset, yoff=(indices[0]-k.centroid[1]), z=z_idx))
-          w.writeln("{sig} = getr32_vv({sig});".format(sig=sigName))
+          w.writeln("{sig} = getr16_vv({sig});".format(sig=sigName))
 
 
       w.writeln()
@@ -379,28 +379,10 @@ def write_main_tie(w, dag):
   w.writeln("%s_ref.load(argv[1]);  // load the input image from file" % head)
   w.writeln()
 
-  w.writeln("// Set tap values")
-  head = dag.head # Get the edge which points to the first kernel
-  tapSet = set()  # use a set to avoid redeclaration of tap in C
-  while head != dag.tail:
-    # Look up the kernel corresponding to the edge sink
-    k = dag.kernels[dag.edges[head][1]]
-
-    # Create placeholder for tap values
-    for tapName in k.rtapNames:
-      if tapName not in tapSet:
-        tapSet.add(tapName)
-        tapType = k.edges[tapName].dtype
-        tapType = dtypeMap[tapType]
-        for indices in dpdadag.expand_range(k.edges[tapName].dim):
-          w.writeln("const {type} {sig} = 0; \t// TODO change in value".format(type=tapType, sig=compile.mangle((tapName, indices))))
-
-    # go to the next kernel
-    head = k.sink
 
   w.writeln("")
   w.writeln("// Create a vector zero")
-  w.writeln("vector32 zero_v = mv32_sv(0);")
+  w.writeln("vector32 zero_v = mv16_sv(0);")
 
   w.writeln("")
   w.writeln("// Create the input image in vector format")
@@ -521,15 +503,6 @@ def write_test_kernel(w, k):
   w.writeln("const int height = 256;  // TODO change to match input image")
   w.writeln()
 
-  w.writeln("// Set tap values")
-  # Create placeholder for tap values
-  for tapName in k.rtapNames:
-      tapType = k.edges[tapName].dtype
-      tapType = dtypeMap[tapType]
-      for indices in dpdadag.expand_range(k.edges[tapName].dim):
-          w.writeln("const {type} {sig} = 0; \t// TODO change in value".format(type=tapType, sig=compile.mangle((tapName, indices))))
-
-
   # calculate the input/output channel counts
   input_dim = k.edges[k.ppoutName].dim
   output_dim = k.edges[k.sink].dim
@@ -553,8 +526,8 @@ def write_test_kernel(w, k):
   w.writeln()
   w.writeln("// global var for input/output data")
   attr = '__attribute__((section(".dram.data")))'
-  w.writeln("vector32 in_img[width/N * height * {c}] {attr};".format(c=in_channels, attr=attr))
-  w.writeln("vector32 out_img[width/N * (height + {padding} )* {c}] {attr};".format(c=out_channels, attr=attr, padding=(pad_rows_top+pad_rows_bottom)))
+  w.writeln("vector32 in_img[width/N * (height + {padding} ) * {c}] {attr};".format(c=in_channels, attr=attr, padding=(pad_rows_top+pad_rows_bottom)))
+  w.writeln("vector32 out_img[width/N * height * {c}] {attr};".format(c=out_channels, attr=attr))
 
   w.writeln()
   w.writeln("int main(int argc, char* argv[])");
@@ -564,8 +537,8 @@ def write_test_kernel(w, k):
   w.writeln("setup_power_toggle();")
 
   w.writeln()
-  w.writeln("vector32 zero_v = mv32_sv(0);")
-  w.writeln("Image<vector32> {img}_pad_v(in_img, width/N, height+{padding}, {c}, zero_v);".format(img=k.src, c=out_channels, padding=(pad_rows_top+pad_rows_bottom)))
+  w.writeln("vector32 zero_v = mv16_sv(0);")
+  w.writeln("Image<vector32> {img}_pad_v(in_img, width/N, height+{padding}, {c}, zero_v);".format(img=k.src, c=in_channels, padding=(pad_rows_top+pad_rows_bottom)))
   w.writeln("Image<vector32> {img}_v(out_img, width/N, height, {c}, zero_v);".format(img=k.sink, c=out_channels, padding=(pad_rows_top+pad_rows_bottom)))
 
   w.writeln("// load input data")
@@ -616,6 +589,25 @@ if __name__ == "__main__":
   w.writeln("#include \"image.h\"")
   w.writeln("#include \"arch.h\"")
   w.writeln()
+  w.writeln("// Set tap values")
+  head = dag.head # Get the edge which points to the first kernel
+  tapSet = set()  # use a set to avoid redeclaration of tap in C
+  while head != dag.tail:
+    # Look up the kernel corresponding to the edge sink
+    k = dag.kernels[dag.edges[head][1]]
+
+    # Create placeholder for tap values
+    for tapName in k.rtapNames:
+      if tapName not in tapSet:
+        tapSet.add(tapName)
+        tapType = k.edges[tapName].dtype
+        tapType = dtypeMap[tapType]
+        for indices in dpdadag.expand_range(k.edges[tapName].dim):
+          w.writeln("const {type} {sig} = 0; \t// TODO change in value".format(type=tapType, sig=compile.mangle((tapName, indices))))
+
+    # go to the next kernel
+    head = k.sink
+
   for k in dag.kernels.values():
     write_kernel_tie(w, k, 'header')
   w.writeln("#endif")

@@ -1,4 +1,4 @@
-; my $N = 4;
+; my $N = 16;
 ; my $R = 32;
 
 // R-entry N-way SIMD vector regfile
@@ -84,15 +84,23 @@ function [31:0] func_lte32 ([31:0] op1, [31:0] op2)
 
 function [31:0] func_lshift32 ([31:0] op1, [31:0] op2)
 {
-   assign func_lshift32 = op1 << op2;
+   wire overflow = op2 >= 32;
+   wire [4:0] shiftAmt = op2[4:0];
+   wire [31:0] shiftedVal = op1 << shiftAmt;
+   assign func_lshift32 = overflow ? 32'b0 : shiftedVal;
 }
 
 
 function [31:0] func_rshift32 ([31:0] op1, [31:0] op2)
 {
+   wire overflow = op2 >= 32;
    wire is_pos = (op1[31] == 1'b0);
-   assign func_rshift32 = is_pos ? (op1 >> op2) :
-                          ({32'hffff_ffff, op1} >> op2);
+   wire [4:0] shiftAmt = op2[4:0];
+   wire [63:0] preshiftVal = is_pos ? {32'h0, op1} : {32'hffff_ffff, op1};
+   wire [31:0] shiftedVal =  preshiftVal >> shiftAmt;
+   wire [31:0] overflowVal = is_pos ? 32'b0 : 32'hffff_ffff;
+   assign func_rshift32 = overflow ? overflowVal : shiftedVal;
+
 }
 
 function [31:0] func_max32 ([31:0] op1, [31:0] op2)
@@ -213,3 +221,10 @@ schedule my_sched {mult32.vv}
   def des 2;
 }
   
+
+// data gate
+property data_gate mult32.vv {src1, src2}
+property data_gate lshift32.vv {src1, src2}
+property data_gate rshift32.vv {src1, src2}
+property data_gate add32.vv {src1, src2}
+property data_gate sub32.vv {src1, src2}
