@@ -106,7 +106,7 @@ def write_kernel_ops(w, k, startName):
         elif op.name == "ne":
           w.writeln("{dtype} {dst} = ne16_vv({op1}, {op2});".format(dtype=dtype, dst=compile.mangle(op.result), op1=compile.mangle(op.operands[0]), op2=compile.mangle(op.operands[1])))
         elif op.name == "eq":
-          w.writeln("{dtype} {dst} = ne16_vv({op1}, {op2});".format(dtype=dtype, dst=compile.mangle(op.result), op1=compile.mangle(op.operands[0]), op2=compile.mangle(op.operands[1])))
+          w.writeln("{dtype} {dst} = eq16_vv({op1}, {op2});".format(dtype=dtype, dst=compile.mangle(op.result), op1=compile.mangle(op.operands[0]), op2=compile.mangle(op.operands[1])))
         elif op.name == "lt":
           w.writeln("{dtype} {dst} = lt16_vv({op1}, {op2});".format(dtype=dtype, dst=compile.mangle(op.result), op1=compile.mangle(op.operands[0]), op2=compile.mangle(op.operands[1])))
         elif op.name == "lte":

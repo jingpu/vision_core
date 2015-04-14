@@ -58,6 +58,7 @@ class Kernel:
     self.src = None
     self.sink = None
     self.constants = [] # Tuple of (register name, value)
+    self.specialRegs = [] # list of regist names
 
     #self.mapOps = {}
     #self.mapEdges = {}
@@ -122,6 +123,10 @@ class Kernel:
 
   def add_constant(self, decl):
     cName = "c_%s" % decl.replace('.', '_').replace('-', 'n').replace('+', '')
+    # avoid adding the same constant
+    if (cName, decl) in self.constants:
+      return cName
+    
     self.constants.append((cName, decl))
     # TODO: infer datatype and width
     e = Edge()
@@ -278,9 +283,14 @@ def parse_kernel(name, blob):
   kernel.sizeOut = kConfig['StencilOut']
   kernel.centroid = kConfig['Centroid']
 
-
-  ppout = kConfig['RPixelPart'][0] # HACK here assumes that 'RPixelPart' has only one element
-  kernel.ppoutName = parse_signal(ppout.split()[1])[0]
+  # grab the special register and input image singal names
+  for line in kConfig['RPixelPart']:
+    sigName = parse_signal(line.split()[1])[0]
+    if sigName == "centroid_pos" or sigName == "pixel_out_pos":
+      kernel.specialRegs.append(sigName)
+    else:
+      # HACK here assumes that 'RPixelPart' has only one input image element
+      kernel.ppoutName = sigName
 
   # list of tap signal names used by reduce kernel
   kernel.rtapNames = [parse_signal(sig.split()[1])[0] for sig in kConfig['RTap'] ]

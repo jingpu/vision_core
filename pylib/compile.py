@@ -4,7 +4,9 @@
 
 import sys
 
-import dpdadag
+from dpdadag import expand_range
+from dpdadag import parse_dpda
+
 
 class CodeWriter:
   """
@@ -115,7 +117,7 @@ def write_kernel(w, k):
   for tapName in k.rtapNames:
     tapType = k.edges[tapName].dtype
     tapCType = dtypeMap[tapType]
-    for indices in dpdadag.expand_range(k.edges[tapName].dim):
+    for indices in expand_range(k.edges[tapName].dim):
       w.writeln("\t, {type} {sig}".format(type=tapCType, sig=mangle((tapName, indices))))
   w.writeln(")")
   w.writeln("{")
@@ -133,7 +135,7 @@ def write_kernel(w, k):
   startName = k.ppoutName
   startType = k.edges[startName].dtype
   startCType = dtypeMap[startType]
-  for indices in dpdadag.expand_range(k.edges[startName].dim):
+  for indices in expand_range(k.edges[startName].dim):
     # HACK: work with multi-channel or single-channel images
     z_idx = 0
     if len(indices) == 3:
@@ -152,11 +154,25 @@ def write_kernel(w, k):
     w.writeln("const float {reg} = {val};".format(reg=mangle((const[0], [0])), val=const[1]))
   
   w.writeln("")
+
+
+  #Special Register Examples for Reduce:
+  #fix_17_0 pixel_out_pos[1:0]  # Location of Reduce pixel in output image
+  #fix_17_0 centroid_pos[1:0]  # Location of Centroid in input image
+  if "centroid_pos" in k.specialRegs:
+    w.writeln("int centroid_pos_0 = x;")
+    w.writeln("int centroid_pos_1 = y;")
+
+  if "pixel_out_pos" in k.specialRegs:
+    w.writeln("int pixel_out_pos_0 = x;")
+    w.writeln("int pixel_out_pos_1 = y;")
   
   # Create a list of (name, index) tuples representing the valid (i.e., evaluated) signal
-  validRegs = [(startName, i) for i in dpdadag.expand_range(k.edges[startName].dim)]
-  for tapName in k.rtapNames:
-    validRegs += [(tapName, i) for i in dpdadag.expand_range(k.edges[tapName].dim)]
+  validRegs = [(startName, i) for i in expand_range(k.edges[startName].dim)]
+  validRegs += [(tapName, i) for tapName in k.rtapNames 
+                for i in expand_range(k.edges[tapName].dim)]
+  validRegs += [(regName, i) for regName in k.specialRegs 
+                for i in expand_range(k.edges[regName].dim)]
   validRegs += [(c[0], [0]) for c in k.constants]
   
   # Make a copy of the list of operations which we can remove stuff from
@@ -198,6 +214,10 @@ def write_kernel(w, k):
           w.writeln("{dtype} {dst} = {op1} & {op2};".format(dtype=dtype, dst=mangle(op.result), op1=mangle(op.operands[0]), op2=mangle(op.operands[1])))
         elif op.name == "or":
           w.writeln("{dtype} {dst} = {op1} | {op2};".format(dtype=dtype, dst=mangle(op.result), op1=mangle(op.operands[0]), op2=mangle(op.operands[1])))
+        elif op.name == "ne":
+          w.writeln("{dtype} {dst} = {op1} != {op2};".format(dtype=dtype, dst=mangle(op.result), op1=mangle(op.operands[0]), op2=mangle(op.operands[1])))
+        elif op.name == "eq":
+          w.writeln("{dtype} {dst} = {op1} == {op2};".format(dtype=dtype, dst=mangle(op.result), op1=mangle(op.operands[0]), op2=mangle(op.operands[1])))
         elif op.name == "lt":
           w.writeln("{dtype} {dst} = {op1} < {op2};".format(dtype=dtype, dst=mangle(op.result), op1=mangle(op.operands[0]), op2=mangle(op.operands[1])))
         elif op.name == "lte":
@@ -206,6 +226,10 @@ def write_kernel(w, k):
           w.writeln("{dtype} {dst} = {op1} > {op2};".format(dtype=dtype, dst=mangle(op.result), op1=mangle(op.operands[0]), op2=mangle(op.operands[1])))
         elif op.name == "gte":
           w.writeln("{dtype} {dst} = {op1} >= {op2};".format(dtype=dtype, dst=mangle(op.result), op1=mangle(op.operands[0]), op2=mangle(op.operands[1])))
+        elif op.name == "not":
+          w.writeln("{dtype} {dst} = ~{src};".format(dtype=dtype, dst=mangle(op.result), src=mangle(op.operands[0])))
+        elif op.name == "abs":
+          w.writeln("{dtype} {dst} = {src} > 0 ? {src} : -{src};".format(dtype=dtype, dst=mangle(op.result), src=mangle(op.operands[0])))
         elif op.name == "inv":
           w.writeln("{dtype} {dst} = -{src};".format(dtype=dtype, dst=mangle(op.result), src=mangle(op.operands[0])))
 
@@ -229,7 +253,7 @@ def write_kernel(w, k):
         print "\t %s %s" % (unprocessed[opKey].name, unprocessed[opKey].result)
       break
   
-  for indices in dpdadag.expand_range(k.edges[k.sink].dim):
+  for indices in expand_range(k.edges[k.sink].dim):
     #writeln('printf("result: %f\\n", {reg});'.format(reg=mangle((k.sink, indices))))
     # TODO: make this handle depths other than 3
     w.writeln('out(x,y,{z}) = {reg};'.format(z=indices[0], reg=mangle((k.sink, indices))))
@@ -272,7 +296,7 @@ def write_main(w, dag):
         tapSet.add(tapName)
         tapType = k.edges[tapName].dtype
         tapType = dtypeMap[tapType]
-        for indices in dpdadag.expand_range(k.edges[tapName].dim):
+        for indices in expand_range(k.edges[tapName].dim):
           w.writeln("{type} {sig} = 0; \t// TODO change in value".format(type=tapType, sig=mangle((tapName, indices))))
 
     # go to the next kernel
@@ -287,13 +311,13 @@ def write_main(w, dag):
     k = dag.kernels[dag.edges[head][1]]
 
     # Create an image for the output
-    channels = len(dpdadag.expand_range(k.edges[k.sink].dim))
+    channels = len(expand_range(k.edges[k.sink].dim))
     w.writeln("Image<int> {0}(width, height, {1}, 0);".format(k.sink, channels))
 
     # Invoke the kernel
     w.writeln("{k}({src}, {sink}".format(k=k.name, src=head, sink=k.sink))
     for tapName in k.rtapNames:
-      for indices in dpdadag.expand_range(k.edges[tapName].dim):
+      for indices in expand_range(k.edges[tapName].dim):
         w.writeln("\t, {sig}".format(sig=mangle((tapName, indices))))
     w.writeln(");")
     w.writeln("") 
@@ -323,9 +347,10 @@ if __name__ == "__main__":
   w.writeln("#include <stdlib.h>");
   w.writeln("#include \"image.h\"");
 
-  dag = dpdadag.parse_dpda(sourceFile)
+  dag = parse_dpda(sourceFile)
 
   for k in dag.kernels.values():
+    print ("\twriting kernel {}...".format(k.name))
     write_kernel(w, k)
 
   write_main(w, dag)
