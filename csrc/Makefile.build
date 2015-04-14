@@ -1,0 +1,70 @@
+# -*- makefile -*-
+
+include Make.vars
+.PHONY: all clean run
+
+# Default target 
+all: $(TARGET)
+
+#############################
+# Tools
+#############################
+
+# Tensilica compiler
+CXX := xt-xc++
+CC := xt-xcc
+# Tensilica Instruction Set Simulator
+ISS = xt-run
+
+#############################
+# Build Flags
+#############################
+
+TDK_DIR = ../../tie_out_sn32
+#COREFLAGS= --xtensa-system=$(XTENSA_SYSTEM) --xtensa-core=$(XTENSA_CORE) 
+COREFLAGS= --xtensa-params=$(TDK_DIR)
+
+CFLAGS =  $(COREFLAGS) -I../lib -O3 -fno-unroll-loops -g -fexceptions -keep_min
+
+ISS_LDFLAGS =  $(COREFLAGS) -g -lhal -mlsp=sim -lreftb 
+RT_LDFLAGS  =   $(COREFLAGS)  -g -lhal -mlsp=min-rt -lreftb 
+
+#############################
+# Build Rules
+#############################
+
+# Make object
+./%.o : ./%.c 
+	$(CXX) -c $(CFLAGS) $< -o $@
+
+./%.o : ./%.cpp 
+	$(CXX) -c $(CFLAGS) $< -o $@
+
+./%.o : ../lib/%.c
+	$(CXX) -c $(CFLAGS) $< -o $@
+
+./%.o : ../lib/%.cpp 
+	$(CXX) -c $(CFLAGS) $< -o $@
+
+./%.rtl.o : ./%.cpp 
+	$(CXX) -c $(CFLAGS)  -DRTL_SIM $< -o $@
+
+# Make executables
+test: datatypes.o qdbmp.o pipeline.o test.o 
+	$(CXX) $^  $(ISS_LDFLAGS) -o $@
+
+./%.iss: datatypes.o qdbmp.o pipeline.o ./%.o
+	$(CXX) $^  $(ISS_LDFLAGS) -o $@
+
+./%.rtl: datatypes.o qdbmp.o pipeline.o ./%.rtl.o
+	$(CXX) $^  $(RT_LDFLAGS) -o $@
+
+
+run: $(RUN_TARGET)
+	$(ISS)  $(SIM_ARGS) $(RUN_TARGET)  $(TAR_ARGS) 
+
+clean:
+	rm -f $(TARGET)
+	rm -f *.i *.ii *.s *.S *.o
+	rm -f trace.log prof.*
+

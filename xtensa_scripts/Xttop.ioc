@@ -1,0 +1,133 @@
+################################################################################
+# Customer ID=3146; Build=0x556cf; Copyright (c) 2008-2014 by Tensilica Inc.  ALL RIGHTS RESERVED.              #
+# These coded instructions, statements, and computer programs are the          #
+# copyrighted works and confidential proprietary information of Tensilica Inc. #
+# They may not be modified, copied, reproduced, distributed, or disclosed to   #
+# third parties in any manner, medium, or form, in whole or in part, without   #
+# the prior written consent of Tensilica Inc.                                  #
+################################################################################
+
+################################################################################
+# Xttop.ioc file specifies the delays for the ports.                           #
+# A comment line begins with a #. Each port is specified on a separate line.   #
+# The first column specifies the name of the port, the second column specifies #
+# whether it is an input or output port, and the third column specifies the    #
+# clock port that the delay is in reference to. The fourth data column         #
+# specifies the delay. The definitions of input delay and output delay are     #
+# identical to those used by Synopsys Design Compiler. Values are specified in #
+# either your target library time unit or as a fraction of the clock period    #
+# variable(s). The syntax of specifying the value as a fraction of the clock   #
+# period is 'Target_ClockPeriod * <fraction>'. Here, "Target_ClockPeriod"      #
+# refers to the target clock period of the reference clock of the              #
+# corresponding port.                                                          #
+#    1) If the reference clock is CLK, the target clock period is specified    #
+#       by the "Target_ClockPeriod" variable in the CadSetup.file              #
+#    2) If the reference clock is JTCK, the target clock period is specified   #
+#       by 4 times of the "Target_ClockPeriod" variable in the CadSetup.file   #
+#    3) If the reference clock is BCLK, then:                                  #
+#         a) if the bus bridge is asynchronous to the Xtensa core, then the    #
+#            target clock period is specified by the                           #
+#            "Target_BridgeClockPeriod" variable in the CadSetup.file          #
+#         b) if the bus bridge is synchronous, then the target clock period    #
+#            is specified by the "Target_ClockPeriod" variable in              #
+#            the CadSetup.file                                                 #
+#    4) If the reference clock is PBCLK, the target clock period is specified  #
+#       by the "Target_APBClockPeriod" variable in the CadSetup.file           #
+#                                                                              #
+# The default values provided are based on estimated delays for the target     #
+# technology node. The actual delays depend on the specific memory compiler    #
+# (or standard cell flop clk-to-q for machines that have more than one cycle   #
+# for memory access) and a budget for top-level wiring and buffering delays.   #
+# If performing Xtensa subsystem synthesis via the Syn_UseMemoryMacros flag in #
+# the CadSetup.file, the values in this file for any of the following ports    #
+# are ignored: DCache*, DTag*, DRam*, DRom*, ICache*, ITag*, IRam*, IRom*,     #
+# URam*, TraceMem*.                                                            #
+#									       #
+# THE NUMBERS PROVIDED BELOW MAY BE MODIFIED TO REFLECT ACTUAL BUDGETS         #
+################################################################################
+
+# port               dirn     clock   delay (lib time unit)
+
+# Signal group: DCache0
+DCacheAData0         i        CLK     1.0
+DCacheAEn0           o        CLK     0.11
+DCacheAWr0           o        CLK     0.11
+DCacheAddr0          o        CLK     0.143
+DCacheBData0         i        CLK     1.0
+DCacheBEn0           o        CLK     0.11
+DCacheBWr0           o        CLK     0.11
+DCacheByteEn0        o        CLK     0.0396
+DCacheCData0         i        CLK     1.0
+DCacheCEn0           o        CLK     0.11
+DCacheCWr0           o        CLK     0.11
+DCacheDData0         i        CLK     1.0
+DCacheDEn0           o        CLK     0.11
+DCacheDWr0           o        CLK     0.11
+DCacheWrData0        o        CLK     0.0396
+DTagAData0           i        CLK     0.561
+DTagAEn0             o        CLK     0.11
+DTagAWr0             o        CLK     0.143
+DTagAddr0            o        CLK     0.143
+DTagBData0           i        CLK     0.561
+DTagBEn0             o        CLK     0.11
+DTagBWr0             o        CLK     0.143
+DTagCData0           i        CLK     0.561
+DTagCEn0             o        CLK     0.11
+DTagCWr0             o        CLK     0.143
+DTagDData0           i        CLK     0.561
+DTagDEn0             o        CLK     0.11
+DTagDWr0             o        CLK     0.143
+DTagWrData0          o        CLK     0.077
+
+# Signal group: Global
+BReset               i        CLK     Target_ClockPeriod * 0.25
+
+# Signal group: ICache
+ICacheAData          i        CLK     0.748
+ICacheAEn            o        CLK     0.11
+ICacheAWordEn        o        CLK     0.055
+ICacheAWr            o        CLK     0.187
+ICacheAddr           o        CLK     0.253
+ICacheWrData         o        CLK     0.055
+ITagAData            i        CLK     0.561
+ITagAEn              o        CLK     0.11
+ITagAWr              o        CLK     0.143
+ITagAddr             o        CLK     0.143
+ITagWrData           o        CLK     0.077
+
+# Signal group: Interrupt
+BInterrupt           i        CLK     Target_ClockPeriod * 0.40
+PWaitMode            o        CLK     Target_ClockPeriod * 0.85
+
+# Signal group: PIFM
+PIReqRdy             i        CLK     Target_ClockPeriod * 0.60
+PIRespCntl           i        CLK     Target_ClockPeriod * 0.70
+PIRespData           i        CLK     Target_ClockPeriod * 0.70
+PIRespId             i        CLK     Target_ClockPeriod * 0.70
+PIRespPriority       i        CLK     Target_ClockPeriod * 0.70
+PIRespValid          i        CLK     Target_ClockPeriod * 0.70
+POReqAdrs            o        CLK     Target_ClockPeriod * 0.80
+POReqCntl            o        CLK     Target_ClockPeriod * 0.80
+POReqData            o        CLK     Target_ClockPeriod * 0.80
+POReqDataBE          o        CLK     Target_ClockPeriod * 0.80
+POReqId              o        CLK     Target_ClockPeriod * 0.80
+POReqPriority        o        CLK     Target_ClockPeriod * 0.80
+POReqValid           o        CLK     Target_ClockPeriod * 0.80
+PORespRdy            o        CLK     Target_ClockPeriod * 0.50
+
+# Signal group: RunStall
+RunStall             i        CLK     Target_ClockPeriod * 0.80
+
+# AccessPort port timing
+JTDI                 i        JTCK    Target_ClockPeriod * 0.3
+JTDO                 o        JTCK    Target_ClockPeriod * 0.3
+JTDOEn               o        JTCK    Target_ClockPeriod * 0.3
+JTMS                 i        JTCK    Target_ClockPeriod * 0.3
+JTRST                i        JTCK    Target_ClockPeriod * 0.3
+
+# Debug port timing
+OCDHaltOnReset       i        CLK     Target_ClockPeriod * 0.7
+XOCDMode             o        CLK     Target_ClockPeriod * 0.7
+DReset               i        CLK     Target_ClockPeriod * 0.2
+
+

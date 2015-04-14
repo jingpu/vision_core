@@ -1,0 +1,373 @@
+; my $N = 32;
+; my $R = 32;
+
+// R-entry N-way SIMD vector regfile
+; printf("regfile vector32 %d %d v32r\n", $N*16, $R); 
+
+
+// List of DPDA operation natively supported in TIE
+// 'min', 'max'
+// 'mv', 'add', 'sub', 'mult', 'inv', 'mux',   'and', 'or', 'ne', 'eq'
+// 'gt', 'lt', 'gte', 'lte', 'lshift', 'rshift',
+
+// List of DPDA operation not supported
+// 'clamp', 'div'
+
+function [15:0] func_mult16 ([15:0] op1, [15:0] op2)
+{
+  wire do_signed = 1'b1;
+  assign func_mult16  = TIEmul(op1, op2, do_signed);
+}
+
+function [15:0] func_add16 ([15:0] op1, [15:0] op2)
+{
+  assign func_add16  = op1 + op2;
+}
+
+function [15:0] func_sub16 ([15:0] op1, [15:0] op2)
+{
+  assign func_sub16  = op1 - op2;
+}
+
+function [15:0] func_and16 ([15:0] op1, [15:0] op2)
+{
+  assign func_and16  = op1 & op2;
+}
+
+function [15:0] func_or16 ([15:0] op1, [15:0] op2)
+{
+  assign func_or16  = op1 | op2;
+}
+
+function [15:0] func_ne16 ([15:0] op1, [15:0] op2)
+{
+  assign func_ne16  = op1 != op2;
+}
+
+function [15:0] func_eq16 ([15:0] op1, [15:0] op2)
+{
+  assign func_eq16  = op1 == op2;
+}
+
+
+
+function [15:0] func_inv16 ([15:0] op1)
+{
+  assign func_inv16  = ~op1 + 1'b1;  // invert the 2's complement
+}
+
+
+
+function [15:0] func_not16 ([15:0] op1)
+{
+  assign func_not16  = ~op1;  
+}
+
+
+function [15:0] func_abs16 ([15:0] op1)
+{
+  wire is_pos = op1[15] == 1'b0;
+  assign func_abs16  = is_pos ? op1 : (~op1 + 1'b1); 
+}
+
+
+function [15:0] func_mux16 ([15:0] cond, [15:0] op1, [15:0] op2)
+{
+  assign func_mux16  = cond ? op1 : op2;
+}
+
+function [15:0] func_gt16 ([15:0] op1, [15:0] op2)
+{
+  wire [4:0] cmp_res;  // {lt, le, eq, ge, gt}
+  wire do_signed = 1'b1;
+  assign cmp_res = TIEcmp(op1, op2, do_signed);
+  assign func_gt16 = cmp_res[0];
+}
+
+function [15:0] func_gte16 ([15:0] op1, [15:0] op2)
+{
+  wire [4:0] cmp_res;  // {lt, le, eq, ge, gt}
+  wire do_signed = 1'b1;
+  assign cmp_res = TIEcmp(op1, op2, do_signed);
+  assign func_gte16 = cmp_res[1];
+}
+
+
+function [15:0] func_lt16 ([15:0] op1, [15:0] op2)
+{
+  wire [4:0] cmp_res;  // {lt, le, eq, ge, gt}
+  wire do_signed = 1'b1;
+  assign cmp_res = TIEcmp(op1, op2, do_signed);
+  assign func_lt16 = cmp_res[4];
+}
+
+function [15:0] func_lte16 ([15:0] op1, [15:0] op2)
+{
+  wire [4:0] cmp_res;  // {lt, le, eq, ge, gt}
+  wire do_signed = 1'b1;
+  assign cmp_res = TIEcmp(op1, op2, do_signed);
+  assign func_lte16 = cmp_res[3];
+}
+
+function [15:0] func_lshift16 ([15:0] op1, [15:0] op2)
+{
+   wire overflow = op2 >= 16;
+   wire [3:0] shiftAmt = op2[3:0];
+   wire [15:0] shiftedVal = op1 << shiftAmt;
+   assign func_lshift16 = overflow ? 16'b0 : shiftedVal;
+}
+
+
+function [15:0] func_rshift16 ([15:0] op1, [15:0] op2)
+{
+   wire overflow = op2 >= 16;
+   wire is_pos = (op1[15] == 1'b0);
+   wire [3:0] shiftAmt = op2[3:0];
+   wire [31:0] preshiftVal = is_pos ? {16'h0, op1} : {16'hffff, op1};
+   wire [15:0] shiftedVal =  preshiftVal >> shiftAmt;
+   wire [15:0] overflowVal = is_pos ? 16'b0 : 16'hffff;
+   assign func_rshift16 = overflow ? overflowVal : shiftedVal;
+}
+
+function [15:0] func_max16 ([15:0] op1, [15:0] op2)
+{
+   wire gt = func_gt16(op1, op2);
+   assign func_max16 = func_mux16(gt, op1, op2);
+}
+
+function [15:0] func_min16 ([15:0] op1, [15:0] op2)
+{
+   wire lt = func_lt16(op1, op2);
+   assign func_min16 = func_mux16(lt, op1, op2);
+}
+
+operation mv16.sv {out vector32 des, in AR src1}{}
+{
+; foreach $i (0..($N-1)) {
+;   printf("  wire [15:0] res%d = src1;\n",  $i);
+; } # end of 'foreach $i...'
+  
+  assign des = {
+; for( my $i = $N-1; $i >= 1; $i -= 1 ) {
+;   printf("res%d, ",$i); 
+; } # end of 'foreach $i...'
+  res0
+  };
+}
+
+operation getr16.vv {out vector32 des, in vector32 src1}{}
+{
+; foreach $i (0..($N-2)) {
+;   printf("  wire [15:0] res%d = src1[%d:%d];\n",  $i, ($i*16+31), ($i*16+16));
+; } # end of 'foreach $i...'
+; printf("  wire [15:0] res%d = 16'b0;\n",  $N-1); 
+
+  assign des = {
+; for( my $i = $N-1; $i >= 1; $i -= 1 ) {
+;   printf("res%d, ",$i); 
+; } # end of 'foreach $i...'
+  res0
+  };
+}
+
+operation getl16.vv {out vector32 des, in vector32 src1}{}
+{
+  wire [15:0] res0 = 16'b0;
+; foreach $i (1..($N-1)) {
+;   printf("  wire [15:0] res%d = src1[%d:%d];\n",  $i, ($i*16-1), ($i*16-16));
+; } # end of 'foreach $i...'
+	
+  assign des = {
+; for( my $i = $N-1; $i >= 1; $i -= 1 ) {
+;   printf("res%d, ",$i); 
+; } # end of 'foreach $i...'
+  res0
+  };
+}
+
+// Unary operations
+; # generate SIMD operation for the following single input operations
+; my @unary_ops = ( 'inv16', 'not16', 'abs16');
+
+; foreach $op (@unary_ops) {
+; printf("operation %s.vv\n", $op); 
+{out vector32 des, in vector32 src1}{}
+{
+; foreach $i (0..($N-1)) {
+;   printf("  wire [15:0] res%d = func_%s(src1[%d:%d]);\n",
+;           $i, $op,($i*16 + 15), ($i*16));
+; } # end of 'foreach $i...'
+
+  assign des = {
+; for( my $i = $N-1; $i >= 1; $i -= 1 ) {
+;   printf("res%d, ",$i); 
+; } # end of 'foreach $i...'
+  res0
+  };
+}
+
+; } # end of 'foreach $op...'
+
+// Binary operations
+; # generate SIMD operation for the following binary operations
+; my @binary_ops = ( 'add16', 'sub16', 'and16', 'or16', 'ne16', 'eq16',
+;             'gt16', 'lt16', 'gte16', 'lte16', 'lshift16', 'rshift16', 
+;             'min16', 'max16', 'mult16');
+
+; foreach $op (@binary_ops) {
+; printf("operation %s.vv\n", $op); 
+{out vector32 des, in vector32 src1, in vector32 src2}{}
+{
+; foreach $i (0..($N-1)) {
+;   printf("  wire [15:0] res%d = func_%s(src1[%d:%d], src2[%d:%d]);\n",
+;           $i, $op, ($i*16 + 15), ($i*16), ($i*16 + 15), ($i*16));
+; } # end of 'foreach $i...'
+
+  assign des = {
+; for( my $i = $N-1; $i >= 1; $i -= 1 ) {
+;   printf("res%d, ",$i); 
+; } # end of 'foreach $i...'
+  res0
+  };
+}
+
+; } # end of 'foreach $op...'
+
+// Ternary operations
+operation mux16.vv {out vector32 des, in vector32 src1, 
+                    in vector32 src2, in vector32 src3}{}
+{
+; foreach $i (0..($N-1)) {
+;   printf("  wire [15:0] res%d = func_mux16(src1[%d:%d], src2[%d:%d], src3[%d:%d]);\n",
+;           $i, ($i*16 + 15), ($i*16), ($i*16 + 15), ($i*16), ($i*16 + 15), ($i*16));
+; } # end of 'foreach $i...'
+
+  assign des = {
+; for( my $i = $N-1; $i >= 1; $i -= 1 ) {
+;   printf("res%d, ",$i); 
+; } # end of 'foreach $i...'
+  res0
+  };
+}
+
+
+
+
+//schedule multiplies to 1 cycles
+schedule my_sched {mult16.vv}
+{
+  def des 1;
+}
+
+  
+// data gate
+property data_gate mult16.vv {src1, src2}
+property data_gate lshift16.vv {src1, src2}
+property data_gate rshift16.vv {src1, src2}
+property data_gate add16.vv {src1, src2}
+property data_gate sub16.vv {src1, src2}
+
+######################
+## ld/st
+######################
+
+immediate_range my_imm8 -128 127 1
+ctype vector32 512 512 vector32
+
+operation ldiu.vv {out vector32 vreg, inout vector32 *addr, in my_imm8 imm}
+{out VAddr, in MemDataIn512} {
+  wire [31:0] address = addr + imm;
+  assign VAddr = address;
+  assign vreg = MemDataIn512;
+  assign addr = address;
+}
+
+operation stiu.vv {in vector32 vreg, inout vector32 *addr, in my_imm8 imm}
+{out VAddr, out MemDataOut512} {
+  wire [31:0] address = addr + imm;
+  assign VAddr = address;
+  assign MemDataOut512 = vreg;
+  assign addr = address;
+}
+
+operation ldxu.vv {out vector32 vreg, inout vector32 *addr, in AR x}
+{out VAddr, in MemDataIn512} {
+  wire [31:0] address = addr + x;
+  assign VAddr = address;
+  assign vreg = MemDataIn512;
+  assign addr = address;
+}
+
+operation stxu.vv {in vector32 vreg, inout vector32 *addr, in AR x}
+{out VAddr, out MemDataOut512} {
+  wire [31:0] address = addr + x;
+  assign VAddr = address;
+  assign MemDataOut512 = vreg;
+  assign addr = address;
+}
+
+proto vector32_loadiu {out vector32 v, inout vector32 *p, in immediate o} {} {
+  ldiu.vv v, p, o;
+}
+proto vector32_storeiu {in vector32 v, inout vector32 *p, in immediate o} {} {
+  stiu.vv v, p, o;
+}
+proto vec64_loadxu { out vector32 v, inout vector32 *p, in int32 x} {} {
+  ldxu.vv v,p,x;
+}
+proto vec64_storexu { in vector32 v, inout vector32 *p, in int32 x} {} {
+  stxu.vv v,p,x;
+}
+
+
+
+####################
+## mac
+####################
+
+operation fusion2.mac16.vv {inout vector32 des, in vector32 src1, 
+                    in vector32 src2}{}
+{
+; foreach $i (0..($N-1)) {
+;   printf("  wire [15:0] prod%d = func_mult16(src1[%d:%d], src2[%d:%d]);\n",
+;           $i, ($i*16 + 15), ($i*16), ($i*16 + 15), ($i*16));
+
+;   printf("  wire [15:0] res%d = func_add16(prod%d, des[%d:%d]);\n",
+;           $i,  $i, ($i*16 + 15), ($i*16));
+; } # end of 'foreach $i...'
+
+  assign des = {
+; for( my $i = $N-1; $i >= 1; $i -= 1 ) {
+;   printf("res%d, ",$i); 
+; } # end of 'foreach $i...'
+  res0
+  };
+}
+
+imap fusion2.mac16.vv.case1 {inout vector32 des, in vector32 src1, 
+                    in vector32 src2}
+{ {}
+  {
+    fusion2.mac16.vv des, src1, src2;
+  }
+}
+{ {vector32 prod}
+  {
+    mult16.vv prod, src1, src2;
+    add16.vv des, prod, des;
+  }
+}
+
+imap fusion2.mac16.vv.case2 {inout vector32 des, in vector32 src1, 
+                    in vector32 src2}
+{ {}
+  {
+    fusion2.mac16.vv des, src1, src2;
+  }
+}
+{ {vector32 prod}
+  {
+    mult16.vv prod, src1, src2;
+    add16.vv des, des, prod;
+  }
+}

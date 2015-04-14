@@ -1,0 +1,1310 @@
+################################################################################
+#       Customer ID=3146; Build=0x54fee; Copyright (c) 2008-2014 by Tensilica Inc.  ALL RIGHTS RESERVED.        #
+# These coded instructions, statements, and computer programs are the          #
+# copyrighted works and confidential proprietary information of Tensilica Inc. #
+# They may not be modified, copied, reproduced, distributed, or disclosed to   #
+# third parties in any manner, medium, or form, in whole or in part, without   #
+# the prior written consent of Tensilica Inc.                                  #
+################################################################################
+ 
+################################################################################
+# CadSetup.file.                                                               #
+# This file is used to specify implementation goals, library views, and        #
+# EDA tool specific variables.                                                 #
+# The file specifies a set of variable value pairs, one pair per line.         #
+# The format is as follows:                                                    #
+#        # comment(s) following hash until the end of the line                 #
+#        variableName  value						       #
+# where:                                                       		       #
+#      "variableName" refers to a predefined name and should not be altered.   #
+#      "Value" can be a text string (<string>), an integer (<integer>), a      #
+#      floating-point number (<float>), a boolean, or a list specified using   #
+#      braces "{ }". The angle brackets "< >" must be removed when replacing   #
+#      the placeholder with the actual value.				       #
+################################################################################
+
+# Hidden variables
+
+DC_XtensaCompileFlat 0
+
+
+
+################################################################################
+#                                                                              #
+#                       TENSILICA CORE INSTALLATION PATH                       #
+#                                                                              #
+################################################################################
+# Specify the path of the Tensilica core installation directory.
+# This path is used by the front-end tools (e.g. Design Compiler, RTL Compiler)
+# in reading the RTL files of the Tensilica core, which are assumed to be in
+#    <Tensilica_Source>/Hardware/rtl directory.
+# If either the xda/ directory or the RTL directories are moved,
+# change the value of this variable to point to the correct Tensilica core
+# installation directory.
+Tensilica_Source  /nobackup/jingpu/xtensa/XtDevTools/install/builds/RF-2015.2-linux/vision_n16
+
+
+################################################################################
+#                                                                              #
+#                       GLOBAL DESIGN RULE CONSTRAINTS                         #
+#                                                                              #
+################################################################################
+# These front end design rule constraints (DRCs) apply to all tool flows. As
+# DRCs, they take precedence over other implementation targets (speed, area, or
+# power) in the tool's optimization cost function.
+
+# Specify the maximum data signal transition constraint in the target library
+# time unit. For example, Target_MaxDataTransistion may be 0.35 nanoseconds in a
+# 45nm technology. This is a primary DRC used in all flows and hence must be
+# specified. The variable can take any floating point number greater than zero.
+Target_MaxDataTransition  0.35
+
+# Specify the maximum clock signal transition constraint in the target library
+# time unit. For example, Target_MaxClockTransistion may be 0.20 nanoseconds in a
+# 45nm technology. This is a primary DRC used in all flows and hence must be
+# specified. The variable can take any floating point number greater than zero.
+Target_MaxClockTransition  0.2
+
+# Specify the maximum fanout that any non-ideal cell or port can drive. Setting
+# this value to zero implies there is no fanout constraint. Note that, even though
+# this is a global DRC, some backend tools will not apply this constraint during
+# clock tree synthesis, since clock tree buffers have much higher drive strengths
+# than other standard cells. The variable can take any positive integer.
+Target_MaxFanout  0
+
+# Specify the maximum capacitance that any non-ideal cell or port can drive. This
+# value should be given in the target library capacitance unit. Setting this value
+# to zero implies there is no maximum capacitance constraint. The variable can
+# take any positive floating point number.
+Target_MaxCapacitance  0
+
+
+################################################################################
+#                                                                              #
+#                         GLOBAL CLOCK CONSTRAINTS                             #
+#                                                                              #
+################################################################################
+# The following constraints are applied to all declared clocks in the design.
+
+# Specify the global target clock skew for all clocks by using the target library
+# time unit. For example, Target_ClockSkew may be 0.1 nanoseconds in a 45nm technology.
+# During clock tree synthesis (CTS), for both ICC and EDI, this value serves as
+# an optimization target.
+Target_ClockSkew  0.1
+
+# Specify the maximum clock insertion constraint for all clocks by using the target
+# library time unit. This is the clock insertion delay constraint for the slow/slow
+# process corner. For example, Target_MaxClockInsertion may be 0.6 nanoseconds in
+# a 45nm technology.
+Target_MaxClockInsertion  0.6
+
+# Specify the minimum clock insertion constraint for all clocks by using the target
+# library time unit. This is the clock insertion delay constraint for the fast/fast
+# process corner. For example, Target_MinClockInsertion may be 0.42 nanoseconds in
+# a 45nm technology.
+Target_MinClockInsertion  0.42
+
+
+################################################################################
+#                                                                              #
+#                       XTENSA CORE CLOCK CONSTRAINTS                          #
+#                                                                              #
+################################################################################
+# Specify the target clock period for the Xtensa core in the target library
+# time unit. The default value is estimated based on the processor configuration.
+# The clock period value can be modified based on the frequency and area goals
+# of the design. For example, Target_ClockPeriod may be 1.5 nanoseconds in a
+# 45nm technology. Please note that if certain constraints in the Xttop.ioc
+# constraint specification file are specified as a percentage of Target_ClockPeriod
+# and are with respect to CLK, the corresponding input or output delays will change
+# when the following variable is modified.
+Target_ClockPeriod  2.5
+
+# Specify the clock source jitter for the Xtensa core in the target library time unit.
+# Since jitter cannot be optimized away, it is a constant drag on the setup timing paths
+# in the design, being taken out of the maximum timing budget for each step in the flow.
+Target_ClockJitter  0.05
+
+
+################################################################################
+#                                                                              #
+#                             LOW POWER FLOW                                   #
+#                                                                              #
+################################################################################
+# By default, the Xtensa implementation flow is geared towards achieving the
+# highest possible design speed. In cases where speed is not the primary design
+# objective, or if the frequency target is easily met, the low power flow can be used
+# to further reduce both static and dynamic power. Although Xtensa RTL already
+# has multi-level clock gating, Design Compiler is capable of additional automatic
+# clock gate insertion. Both clock gating and data gating are performed by the
+# low power flow. As this causes a functional difference to be seen between RTL
+# and the gate-level netlist, formal verification becomes more difficult, and is
+# only recommended with tools from the same vendor (i.e. use Formality if using
+# DC, use Conformal-Ultra if using RC).
+# Setting the Target_LowPowerFlow variable to 1 will override several other
+# CadSetup.file variables to low-power values, i.e. changing these in their
+# respective sections in the CadSetup.file will have no effect if
+# Target_LowPowerFlow is set to 1. The new values will be:
+#
+# From the "GENERIC SYNTHESIS VARIABLES" section:
+#	Syn_UseDirectPrimitives  1 (DC flows only)
+#
+# From the "DESIGN COMPILER (DC) VARIABLES" section:
+#	DC_CriticalRange  0
+#	DC_CompileUltraStrategy  area
+#
+# From the "RTL COMPILER (RC) VARIABLES" section:
+#	RC_OptimizeTNS  0
+#
+# From the "IC COMPILER (ICC) VARIABLES" section:
+#	ICC_CriticalRange  0
+#	ICC_CongestionDrivenPlacement  1
+#	ICC_PinOpt  1
+#	ICC_WriteSPEF  1
+#
+# There are other user-controllable variables that should be adjusted to achieve
+# the lowest possible power. Since clock power is a considerable component of total
+# design power, ensure that the number and size of the clock buffers is minimized.
+# Adjust the Lib_ClockBuffers and Lib_ClockInverters lists from the "POST-SYNTHESIS
+# RELATED LIBRARY VARIABLES" section to have only low drive-strength cells. Lower
+# the Target_MinClockInsertion value to some minimum value. Increase the Target_ClockSkew
+# value. Increase the Fplan_CoreUtilization ratio from the "FLOOR PLAN VARIABLES" section
+# to the highest possible value that will still allow a DRC-clean route - this will
+# minimize wire lengths, therby reducing power. Using a low power library with a lower
+# Vdd or with a higher threshold voltage is also recommended. 
+Target_LowPowerFlow  1
+
+# Total design power consists of both static and dynamic power consumption. Tools are
+# configured to optimize for one or both of these simultaneously. For example, if using
+# an older 130nm library where static power is trivial, it would be best to focus on
+# reducing dynamic power. Valid values are:
+# 1 = reduce static power only
+# 2 = reduce dynamic power only
+# 3 = reduce total (static and dynamic) power
+Target_LowPowerGoal  3
+
+# If the Target_LowPowerFlow variable is set to 1, by default the tool flows will
+# optimize power based on statistical toggle activity. Values of 0.5 and 0.1 will be
+# used for static probability and toggle rate, respectively, on primary inputs, and the
+# calculated values will be propagated through the design. If a forward (from RTL) or
+# backward (from a netlist) SAIF-format toggle file is available from simulation, this more
+# accurate information can be provided. Note that for best results, this file should
+# be generated from a simulation run on the results of the previous implementation
+# step: for example, if running DC, this should be a forward saif from an RTL simulation;
+# then when running ICC, the saif file should come from simulating the post-DC netlist.
+# If running Encounter Digital Implementation (EDI), a TCF (Toggle Count File) 
+# needs to be provided as the value of this variable, since EDI can not read-in
+# SAIF files. To convert a SAIF file into a TCF file, use RTL Compiler. 
+# Only a single file is allowed.
+Target_LowPowerSaifFile  {}
+
+# Multibit cell inferencing (MBCI) is a synthesis optimization strategy whereby single-bit
+# library cells can be combined into multibit versions of the same functional cell. This
+# normally applies to flops being clustered together into 2-bit or 4-bit cells. Besides
+# reducing sequential cell area by sharing internal nodes, the reduction in clock tree
+# leaf pins and routing results in decreased dynamic power consumption. MBCI is supported
+# for both Design Compiler and RTL Compiler. If running physical synthesis (DCG or RCP),
+# each tool takes placement information into account when deciding which flops to pair
+# into multibit cells. Multibit flops are usually provided in a separate library, which
+# must be specified by the same Lib_* variables below used for the main standard cell
+# library. To enable MBCI for either Design Compiler or RTL Compiler, set Target_UseMBCI
+# to 1. No further settings are required for RTL Compiler. For Design Compiler, if the
+# MBCIMapFile and MBCIRegisterFile variables are left as "_none_", MBCI insertion will be
+# for busses only. If these files are available, then MBCI is extended to all design flops.
+# The MBCI flow is not available for standalone TIE (TDK) synthesis.
+Target_UseMBCI  0
+Target_MBCIMapFile  _none_
+Target_MBCIRegisterGroupFile  _none_
+
+
+################################################################################
+#                                                                              #
+#                           MINIMUM AREA FLOW                                  #
+#                                                                              #
+################################################################################
+# By default, the Xtensa implementation flow is geared towards achieving the
+# highest possible design speed. In cases where speed is not the primary design
+# objective, or if the frequency target is easily met, the minimum area flow is
+# designed to achieve the smallest cell area possible. Note that this is distinct
+# from the low power flow described above, which includes data and clock gate
+# insertion, and sets the tool algorithms to focus on power reduction even if it
+# means increasing cell area. Note that the minimum area and low power flows are
+# mutually exclusive: setting both Target_LowPowerFlow and Target_MinAreaFlow to
+# 1 will cause an error message.
+# Setting the Target_MinAreaFlow variable to 1 will override several other
+# CadSetup.file variables to minimum area values, i.e. changing these in their
+# respective sections in the CadSetup.file will have no effect if
+# Target_MinAreaFlow is set to 1. The new values will be:
+#
+# From the "GENERIC SYNTHESIS VARIABLES" section:
+#       Syn_UseDirectPrimitives  1 (DC flows only)
+#	Syn_UseAdvancedFeatures  1 (DC flows only)
+#
+# From the "DESIGN COMPILER (DC) VARIABLES" section:
+#	DC_CriticalRange  0
+#	DC_CompileUltraStrategy  area
+#
+# From the "RTL COMPILER (RC) VARIABLES" section:
+#	RC_OptimizeTNS  0
+#
+# From the "IC COMPILER (ICC) VARIABLES" section:
+#	ICC_CriticalRange  0
+#	ICC_CongestionDrivenPlacement  1
+#	ICC_PinOpt  1
+#
+# There are other things to consider to achieve the smallest design area. Area is
+# the least important aspect of the cost function for all implementation tools - DRC
+# violations, followed by timing and power violations, have higher priority. Make sure
+# the clock period, transition time, and other timing constraints are easily met. Also,
+# try forcing the tools to only use smaller cells by excluding all high drivestrength
+# cells with the Lib_DontUseCells list below. Finally, using register retiming on a design
+# that meets frequency goals easily will reduce area substantially (this may result
+# in formal verification difficulties).
+Target_MinAreaFlow  0
+
+
+################################################################################
+#                                                                              #
+#                   MULTI-CORNER MULTI-MODE (MCMM) FLOW                        #
+#                                                                              #
+################################################################################
+# This flow is only supported for IC Compiler, QRC and PrimeTime.
+# Set the following variable to 1 to enable concurrent MCMM optimization in
+# IC Compiler and MCMM analysis in PrimeTime. Leaving the value at 0 will use
+# the standard min-max timing library pairs defined throughout this file.
+# In addition to using the Target_*, Fplan_*, ICC_*, and PT_* variables that
+# are always required of the ICC/PT flows, the mcmm_scenarios.txt file must be
+# edited to define the target scenarios of interest. When using the MCMM flow,
+# all Lib_* variables in this file can be left to the values that were set
+# to perform Design Compiler synthesis. In addition, the following variables
+# should be set with respect to the worst-case timing libraries that were
+# used to perform Design Compiler synthesis: Lib_SynopsysTechFile,
+# Lib_SynopsysPhysicalLibrary, and Lib_LayerNameMapFile.
+Target_MCMMFlow  0
+
+
+################################################################################
+#                                                                              #
+#                          OCV DERATING FACTORS				       #
+#                                                                              #
+################################################################################
+# Specify derating factors on the design. Note that these commands are passed
+# directly to Design Compiler and PrimeTime, and indirectly to backend tools
+# via the .sdc file generated by Design Compiler. RTL Compiler has its own
+# derating variables specified in the RC section below.
+# The following targets are named according to the set_timing_derate Synopsys
+# command. For example, a target name with "_max" corresponds to the "-max"
+# command switch.
+# Derating values must fall between 0.1 and 2. A value of 1 indicates no
+# derating should be applied.
+# For example, if the user wants cell delays on the data launch path for setup
+# timing to be derated by 10%, then set Target_derate_max_late_data_cell to 1.10.
+# To also derate the corresponding capture path by -8%, set
+# Target_derate_max_early_data_cell to 0.92.
+# Note that if setting Target_MCMMFlow to 1 above, the following derating factors
+# will be applied to all scenarios.
+Target_derate_max_late_data_cell 	1
+Target_derate_max_late_data_net		1 
+Target_derate_max_late_clock_cell	1
+Target_derate_max_late_clock_net	1
+Target_derate_max_early_data_cell	1
+Target_derate_max_early_data_net	1
+Target_derate_max_early_clock_cell	1
+Target_derate_max_early_clock_net	1
+Target_derate_min_late_data_cell	1
+Target_derate_min_late_data_net		1
+Target_derate_min_late_clock_cell	1
+Target_derate_min_late_clock_net	1
+Target_derate_min_early_data_cell	1
+Target_derate_min_early_data_net	1
+Target_derate_min_early_clock_cell	1
+Target_derate_min_early_clock_net	1
+
+
+################################################################################
+#                                                                              #
+#                   SYNTHESIS RELATED LIBRARY VARIABLES                        #
+#                                                                              #
+################################################################################
+# Specify a list of target libraries in Synopsys Liberty (*.db) format for the
+# slow/max process corner. These should contain all the combinational and
+# sequential cells, including any hard macros, intended for use in the design.
+# This variable is intended for use with Synopsys tools.
+# For example, {/lib/130nm/synopsys/slow.db /lib/130nm/mylib/special.db}
+Lib_SynopsysDB  {/cad/synopsys_EDK2/TSMCHOME/digital/Front_End/timing_power_noise/NLDM/tcbn45gsbwp_110a/tcbn45gsbwpwc.db}
+
+# Specify a list of target libraries in Synopsys Liberty (*.lib) format for the
+# slow/max process corner. These should contain all the combinational and
+# sequential cells, including any hard macros, intended for use in the design.
+# If using RTL Compiler with multiple libraries (i.e., for a multi-vt flow),
+# make sure all libraries have a unique name. This is a requirement for .sdf file
+# generation using PrimeTime via the "make rc_sdf" flow.
+# This variable in intended for use with Cadence tools.
+# For example, {/lib/130nm/synopsys/slow.lib /lib/130nm/mylib/special.lib}
+Lib_SynopsysLIB  {<string>}
+
+
+# Specify a list of target libraries in Synopsys Liberty (*.db) format for the
+# fast/min process corner. These should contain all the combinational and
+# sequential cells, including any hard macros, intended for use in the design.
+# This variable is intended for use with Synopsys tools. For proper operation,
+# there must be the same number of files listed in the same order as their slow/max
+# process corner counterparts in Lib_SynopsysDB.
+# For example, {/lib/130nm/synopsys/fast.db}
+Lib_SynopsysMinDB  {/cad/synopsys_EDK2/TSMCHOME/digital/Front_End/timing_power_noise/NLDM/tcbn45gsbwp_110a/tcbn45gsbwpbc.db}
+
+# Specify a list of target libraries in Synopsys Liberty (*.lib) format for the
+# fast/min process corner. These should contain all the combinational and
+# sequential cells, including any hard macros, intended for use in the design.
+# This variable in intended for use with Cadence tools. For proper operation,
+# there must be the same number of files listed in the same order as their slow/max
+# process corner counterparts in Lib_SynopsysLIB.
+# For example, {/lib/130nm/synopsys/fast.lib}
+Lib_SynopsysMinLIB  {<string>}
+
+# The operating conditions for which synthesis will be performed.
+Lib_OperatingCondition  WCCOM
+
+# The min operating conditions for hold violation analysis.
+Lib_MinOperatingCondition BCCOM
+
+# A large D-type flip flop in the target library. For example, DFFX4
+Lib_DriveCell  INVD2BWP
+
+# Name of the output pin of the DFF above. For example, Q.
+Lib_DriveCellsPin  ZN
+
+# Name of the clock pin of the DFF above. For example, CK.
+Lib_DriveCellPinFrom  I
+
+# Input pin of a cell to model a boundary load on Xtensa. 
+# It should be in the form of Library/CellName/PinName.
+# For example, slow/INVX1/A
+Lib_BoundaryLoad  tcbn45gsbwpwc/INVD2BWP/I
+
+# List of library gates that will receive the set_prefer attribute.
+# The set_prefer attribute influences the optimization by encouraging
+# Design Compiler to not remove a gate once it is found. For example, a
+# library may contain 4:1 non-inverting muxes prefixed by MX4, 4:1 inverting
+# muxes prefixed by MXI4, and adder cells prefixed by ADD. To put a set_prefer
+# on these library cells, set the variable to {slow/MX4* slow/MXI4* slow/ADD*}.
+Lib_PreferCells  {}
+
+# List of library gates to not use. Typically, for a high performance
+# design, these are low power cells. For example, if a "slow" library
+# has low power cells suffixed by XL, set the variable to {slow/*XL}
+# to direct Design Compiler not to use these cells. Also, avoid using
+# multiplexed flops, as these have the same functionality as scan flops,
+# but do not have the scan cell attribute, causing Design Compiler to
+# have difficulty with scan insertion. For example, set this key
+# to {slow/*MDFF*}.
+Lib_DontUseCells  {}
+
+
+################################################################################
+#                                                                              #
+#                 POST-SYNTHESIS RELATED LIBRARY VARIABLES                     #
+#                                                                              #
+################################################################################
+# List of physical reference libraries in Cadence LEF format. 
+# For example, {my_lib/lib.lef my_lib/macro.lef}
+# If specifying multiple files, the technology .lef (containing the metal
+# layer definitions) must be listed first. Use spaces to separate list entries.
+Lib_CadencePhysicalLibrary  {/cad/synopsys_EDK2/TSMCHOME/digital/Back_End/lef/tcbn45gsbwp_110a/lef/VHV_0d5_0/tcbn45gsbwp_10lm7X2ZRDL.lef}
+
+# Specify the simulation library, which contains verilog stubs for the reference cells.
+# For example, {my_lib/tsmc13.v} or for multiple verilog files
+# {my_lib/tsmc13.v my_lib/tsmc13_neg.v}
+Lib_VerilogSimulationLibrary  {/cad/synopsys_EDK2/TSMCHOME/digital/Front_End/verilog/tcbn45gsbwp_110b/tcbn45gsbwp.v}
+
+# Specify absolute path location to the Synopsys technology file.
+# Example: {/lib/130nm/X130_6lm.tf}
+Lib_SynopsysTechFile  { /cad/synopsys_EDK2/TSMCHOME/digital/Back_End/milkyway/tcbn45gsbwp_110a/techfiles/VHV_0d5_0/tsmcn45_10lm7X2ZRDL.tf}
+ 
+# List of physical libraries in Synopsys Milkyway DB format.
+# This should be the directory which has CEL/FRAM/TIM/PWR subdirectories under it.
+# Example: {/cad/libraryvendor/0.18/X18 /cad/libraryvendor/macro/RAMS}
+# Use spaces to separate list entries.
+Lib_SynopsysPhysicalLibrary  {/cad/synopsys_EDK2/TSMCHOME/digital/Back_End/milkyway/tcbn45gsbwp_110a/frame_only_VHV_0d5_0/tcbn45gsbwp}
+
+# Specify the TLU+ file used for maximum/worst case condition calculation of resistance
+# and capacitance for flows using TLU+ models. These are more accurate than RC values
+# found in technology file views.
+Lib_MaxTLUPlus /cad/synopsys_EDK2/TSMCHOME/digital/Back_End/milkyway/tcbn45gsbwp_110a/techfiles/tluplus/cln45gs_1p10m+alrdl_cworst_top2.tluplus
+
+# Specify the TLU+ file used for minimum/best case condition calculation of resistance
+# and capacitance for flows using TLU+ models. These are more accurate than RC values
+# found in technology file views. If a minimum file is not available, specify the same
+# file as given to Lib_MaxTLUPlus above.
+Lib_MinTLUPlus  /cad/synopsys_EDK2/TSMCHOME/digital/Back_End/milkyway/tcbn45gsbwp_110a/techfiles/tluplus/cln45gs_1p10m+alrdl_rcbest_top2.tluplus
+
+# Specify the layer name mapping file between the technology library (.tf view) and the 
+# itf file (that used to generate the TLU+ views). This is a required file for flows
+# using TLU+ models. If performing MCMM optimization in ICC, set this variable to
+# correspond to the worst-case library specified by Lib_SynopsysDB.
+Lib_LayerNameMapFile  /cad/synopsys_EDK2/TSMCHOME/digital/Back_End/milkyway/tcbn45gsbwp_110a/techfiles/tluplus/star.map_10M
+
+# Specify the QRC Technology File for the maximum/worst case condition calculation
+# of the resistance and capacitance values. This file type contains the highest level
+# of granularity for RC values, and hence is considered more accurate than the values
+# specified in a capacitance table or LEF file. For technology nodes of 28nm and below,
+# a QRC Technology File is preferred over a capacitance table. Values specified in this
+# file are used for extraction and delay calculation in Cadence tools (both RC and EDI).
+Lib_MaxQrcTechFile  {<string>}
+
+# Specify the QRC Technology File for the minimum/best case condition calculation
+# of the resistance and capacitance values. This file type contains the highest level
+# of granularity for RC values, and hence is considered more accurate than the values
+# specified in a capacitance table or LEF file. For technology nodes of 28nm and below,
+# a QRC Technology File is preferred over a capacitance table. Values specified in this
+# file are used for extraction and delay calculation in the Cadence EDI tool only. If a
+# minimum file is not available, specify the same file as given to Lib_MaxQrcTechFile above.
+Lib_MinQrcTechFile  {<string>}
+
+# Specify the stage-based on-chip variation (SBOCV) file for the maximum/worst case condition.
+# This file contains a 1-D lookup table for each cell in the corresponding Liberty library,
+# and provides a OCV derate value for the cell depending on the total path depth of the timing
+# path of interest. This results in a less pessimistic analysis, especially for deep logic paths.
+# This file takes precedence over standard OCV derate values as specified with the Target_derate_*
+# variables earlier in this file. If a library cell does not appear in the SBOCV table, it will
+# take the normal OCV derate values if so specified.
+Lib_MaxSBOCV  {}
+
+# Specify the stage-based on-chip variation (SBOCV) file for the minimum/best case condition.
+# This file contains a 1-D lookup table for each cell in the corresponding Liberty library,
+# and provides a OCV derate value for the cell depending on the total path depth of the timing
+# path of interest. This results in a less pessimistic analysis, especially for deep logic paths.
+# This file takes precedence over standard OCV derate values as specified with the Target_derate_*
+# variables earlier in this file. If a library cell does not appear in the SBOCV table, it will
+# take the normal OCV derate values if so specified.
+Lib_MinSBOCV  {}
+
+# Specify the Technology Capacitance table file for the maximum/worst case condition
+# calculation of resistance and capacitance values. This file will be ignored if a valid
+# Lib_MaxQrcTechFile is specified above. Values specified in this file are used for
+# extraction and delay calculation in Cadence tools (both RC and EDI).
+Lib_MaxCapTable  {<string>}
+
+# Specify the Technology Capacitance table file for the minimum/best case condition
+# calculation of resistance and capacitance values. This file will be ignored if a valid
+# Lib_MinQrcTechFile is specified above. Values specified in this file are used for
+# extraction and delay calculation in the Cadence EDI tool only. If a minimum file
+# is not available, specify the same file as given to Lib_MaxCapTable above.
+Lib_MinCapTable  {<string>}
+
+# Specify the allowed list of buffers used during clock tree synthesis for the
+# ICC and EDI tools. These should have balanced rise and fall times.
+Lib_ClockBuffers  {CKBD2BWP CKBD4BWP CKBD8BWP CKBD12BWP CKBD16BWP CKBD24BWP}
+
+# Specify the allowed list of inverters used during clock tree synthesis for the
+# ICC and EDI tools. These should have balanced rise and fall times.
+Lib_ClockInverters  {CKND2BWP CKND4BWP CKND8BWP CKND12BWP CKND16BWP CKND24BWP}
+
+# Specifies the target process node to the physically-aware portion of the Cadence tool
+# chain (RCP/EDI/Tempus). This value is then used to set appropriate variables and scaling
+# factors within each tool. The value can range between 10 to 250, and defines the
+# technology value in nanometers. For example, 28 would be used for a TSMC 28hm process.
+Lib_ProcessNode  45
+
+# Ratio of .lef cell area to .lib cell area. Certain libraries normalize
+# synthesis cell areas by the smallest cell in the library. This causes
+# errors in floorplanning during physical implementation. If the area
+# value for a given cell is the same in both the .lib and .lef files, this
+# variable should be set to 1. Otherwise, it should be .lef area / .lib area.
+Lib_ScaleFactor  1 
+
+
+################################################################################
+#                                                                              #
+#                 POWER-ANALYSIS RELATED LIBRARY VARIABLES                     #
+#                                                                              #
+################################################################################
+# Specify a list of typical libraries in Synopsys Liberty (*.db) format.
+# For example, {/lib/130nm/synopsys/typical.db /lib/130nm/mylib/special.db}
+Lib_SynopsysTypDB  {/cad/synopsys_EDK2/TSMCHOME/digital/Front_End/timing_power_noise/NLDM/tcbn45gsbwp_110a/tcbn45gsbwptc.db}
+
+# Specify a list of typical libraries in Synopsys Liberty (*.lib) format.
+# For example, {/lib/130nm/synopsys/typical.lib /lib/130nm/mylib/special.lib}
+Lib_SynopsysTypLIB  {/cad/synopsys_EDK2/TSMCHOME/digital/Front_End/timing_power_noise/NLDM/tcbn45gsbwp_110a/tcbn45gsbwptc.lib}
+
+# Specify a list of Max Leakage Corner libraries in Synopsys Liberty (*.lib) format.
+# Current plan is to use this variable  for TSO and power analysis statistical (leakage power)
+# For simulation on TSO netlist plan is to edit TypLib variables and do soc_go
+Lib_SynopsysLIBML  {<string>}
+
+# The operating conditions for which power analysis will be performed.
+Lib_TypOperatingCondition TCCOM
+
+# Input pin of a cell to model a boundary load on Xtensa in typical corner.
+# It should be in the form of Library/CellName/PinName.
+# For example, typical/INVX1/A
+Lib_TypBoundaryLoad  tcbn45gsbwpwc/INVD2BWP/I
+
+# List of library gates that will receive the set_prefer attribute in typical 
+# corner. The set_prefer attribute influences the optimization by encouraging
+# Design Compiler to not remove a gate once it is found. For example, a
+# library may contain 4:1 non-inverting muxes prefixed by MX4, 4:1 inverting
+# muxes prefixed by MXI4, and adder cells prefixed by ADD. To put a set_prefer
+# on these library cells, set the variable to {typical/MX4* typical/MXI4* typical/ADD*}.
+Lib_TypPreferCells  {}
+
+# List of library gates to not use. Typically, for a high performance
+# design, these are low power cells. For example, if a "slow" library
+# has low power cells suffixed by XL, set the variable to {slow/*XL}
+# to direct Design Compiler not to use these cells. Also, avoid using
+# multiplexed flops, as these have the same functionality as scan flops,
+# but do not have the scan cell attribute, causing Design Compiler to
+# have difficulty with scan insertion. For example, set this key
+# to {typical/*MDFF*}.
+Lib_TypDontUseCells  {}
+
+
+################################################################################
+#                                                                              #
+#                      GENERIC IMPLEMENTATION VARIABLES			       #
+#                                                                              #
+################################################################################
+# The parameters in this section are applicable to more than one tool flow.
+# Refer to the comments above each parameter for further details.
+
+# This parameter specifies that simplified behavioral RTL primitives are to
+# be used instead of the more structured standard primitives for datapath
+# components. This may result in better quality of results during synthesis.
+# For Design Complier, this feature requires a DesignWare license, which reads
+# in the advanced synthetic library operators, allowing for a broader range of
+# microarchitectures. No additional license is required for RTL Compiler.
+# Used by: Design Compiler, RTL Compiler.
+Syn_UseDirectPrimitives  0
+
+# This parameter controls more advanced features of the synthesis tools, including
+# finite-state-machine (FSM) optimization, merging of sequential elements, and 
+# phase inversion of sequential elements. These features may improve the QOR of
+# the design, but may make the resulting netlist unable to pass formal verification.
+# Used by: Design Compiler, RTL Compiler.
+Syn_UseAdvancedFeatures  1
+
+# This parameter enables various Cadence implementation tools to distribute their
+# workload to multiple CPUs on the existing host. Specify the total number of
+# threads that should be run in parallel. Allowed values are 1,2,4,6,8,10,12.
+# To disable multi-threading, set this parameter to 1. Additional licenses for
+# each tool may be required to enable multi-threading.
+# Used by: RTL Compiler, EDI, Tempus.
+Syn_SuperthreadCount  2
+
+# This parameter is only applicable if performing the Synopsys DC to ICC flow. This
+# will turn on the physical guidance flow (-spg), which causes DC to use enhanced
+# placement algorithms to better correlate with ICC place_opt. Placement information
+# is then passed into ICC via the ddc database, which ICC uses to seed the place_opt
+# command and decrease overall runtime. This feature requires a DC-Extension license.
+# This feature can only be used if a floorplan for the design already exists, i.e.
+# this run is the second pass of the DCT --> ICC --> DCG --> ICC flow. The input
+# floorplan is specified using the Fplan_File and *_FP_Use variables. To improve
+# correlation, it is recommended to set ICC_CongestionDrivenPlacement to 1 if also
+# setting Syn_UseSPG to 1.
+# Used by: Design Compiler, IC Compiler.
+Syn_UseSPG  0
+
+# Use this parameter to synthesize the entire processor subsystem, i.e. Xttop
+# (which includes Xtensa plus any bridges or Debug) plus local memories. This
+# additional level of hierarchy at the top level is called Xtmem. The memories
+# must be instantiated in their appropriate file in the Hardware/rtl/memories
+# directory - each configured memory will have its own name-specific file.
+# If selecting this flow, all memories must be defined as hard macros.
+# If this switch remains at its default value of 0, all memory pins are given
+# their respective timing budget delays as defined in Xttop.ioc. Note that
+# this flow is for DC and RC synthesis only - automatic placement of memory
+# hard macros is not currently supported, so backend flows such as ICC or EDI 
+# will not run on a netlist with memory hard macros. All memory macros must
+# also have the appropriate library views specified using the following variables:
+#
+# For DC:
+#	Lib_SynopsysDB
+#	Lib_SynopsysPhysicalLibrary
+#
+# For RC:
+#	Lib_SynopsysLIB
+#	Lib_CadencePhysicalLibrary
+#
+# Not specifying the physical library views mode will result in the synthesis tool
+# issuing an error message and aborting the run.
+# Used by: All Synopsys and Cadence tools.
+Syn_UseMemoryMacros  0
+
+# The following parameter is read only during RTL or gate-level simulation using
+# the soc_go script with the -real_mem option specified. This implies simulation
+# with memory hard macros, as opposed to the Tensilica provided behavioral memory
+# models. Provide the hierarchical name path down to the memory core array, as
+# specified in the verilog model of the memory hard macro. This will allow the
+# simulator to properly pre-load the memory model. For example, Virage SRAM
+# verilog behavioral models have uut.mem_core_array as their instance hierarchy.
+# Used by: VCS, NC, MTI.
+Sim_MemCoreName  <string>
+
+# The following parameter is read only during RTL or gate-level simulation using
+# the soc_go script with the -real_mem option specified. This implies simulation
+# with memory hard macros, as opposed to the Tensilica provided behavioral memory
+# models. If set to 1, the values preloaded into each memory hard macro during
+# a simulation run for each diag will be printed out to the soc_go logfile in
+# <memname> <address> <value> format.
+# Used by: VCS, NC, MTI.
+Sim_MemPrintDebug  0
+
+
+################################################################################
+#                                                                              #
+#                      DESIGN COMPILER (DC) VARIABLES                          #
+#                                                                              #
+################################################################################
+# Specifies an initialization script that will be read into DC prior to any
+# other command at the beginning of synthesis. This allows the user to set
+# additional tool or library specific variables as necessary.
+DC_InitScript  {}
+
+# Specifies the clock uncertainty seen during all steps of the DC synthesis flow;
+# the same value is applied to all defined clocks in the design. As clocks are ideal,
+# this value is added to the Target_*ClockJitter values above and set as the
+# uncertainty value for all setup paths. As such, the combined value is taken
+# directly out of the maximum timing budget for each path. This holds true for all
+# Synopsys tool flows where an ideal clock is used, including during ICC placement.
+DC_SynthUncertainty  0.01
+
+# DC optimizes paths that are within critical range time units of the critical path.
+# Setting this variable to 0 causes DC to focus only on the WNS of each path group,
+# reducing area at the expense of speed.
+DC_CriticalRange  0.564
+
+# In Topographical mode, "compile_ultra" has two internal synthesis strategies,
+# optimizing for either area or speed. This variable tells DC whether to
+# concentrate on area or speed optimization each time a non-incremental "compile_ultra"
+# command is issued. For optimal results, subsequent incremental compile passes
+# focus on area optimization. The allowed values for this variable are "area" or "speed".
+DC_CompileUltraStrategy  speed
+
+# Unlike the retiming required for multicycle TIE instructions, which is controlled
+# by the DC_Allow*Retiming variables below, adaptive retiming is an additional optimization
+# tool of compile_ultra to help critical paths meet timing by slightly adjusting the
+# positions of critical registers. There are two cases in which this variable must be
+# set to 0: 1) If you intend to perform formal verification using Conformal-Ultra on
+# the post-DC netlist; 2) If you intend to perform formal verification using Formality
+# on the post-DC netlist, and there is multicycle TIE that requires retiming.
+DC_CompileUltraAdaptiveRetiming  0
+
+# Controls retiming of multicycle TIE instructions. There are two classes of multicycle
+# TIE instructions - those found in Tensilica coprocessors (such as HiFi2, FPU, and Vectra2),
+# and those found in user TIE. The Tensilica coprocessors have been written to be well
+# balanced and hence do not generally require retiming by DC - the control variable is
+# provided to allow for experimentation. Multicycle user-generated TIE should be retimed
+# by DC to achieve the best possible performance. If a behavioral retiming license (BOA-BRT)
+# is not available, or if retiming is not desired for formal verification purposes, set
+# both of these variables to zero.
+DC_AllowUserRetiming  1
+DC_AllowCoprocRetiming  0
+
+# Enables the minPower flow, that can optimize power for designs that are
+# datapath oriented. This needs to be enabled together with the Low-Power
+# flow by setting Target_LowPowerFlow to 1. When the Low-Power flow is 
+# disabled, setting this variable does not have any effect.
+# DesignWare minPower components are designed to reduce power for datapath 
+# circuits. In particular, most dynamic power optimizations implemented in 
+# this flow are only effective in large datapath blocks, such as sum-of-products 
+# or product-of-sums. You can specify a toggle activity file (in SAIF format) 
+# by using the Target_LowPowerSaifFile variable. Although optional,
+# it is strongly recommended that a toggle activity file generated from RTL
+# simulation is used, and let the minPower flow optimize the  design based on
+# this activity file.
+# The minPower flow Requires a DesignWare-LP license.
+DC_MinPowerFlow  0
+
+# This parameter specifies whether hold-time violations should be fixed during
+# synthesis. Normally, hold-time violations are addressed post-placement when
+# more accurate wire delays are available.
+DC_FixHold  0
+
+# Specifies if custom hard macros, such as register files or integrated clock gating (ICG)
+# cells, are used in the flow. This requires editing of the hard_macros.v file in this
+# directory. Since the clock tree synthesis performance of backend tools is superior with
+# ICGs, this is enabled by default. If using any hard macros, ICGs must always be defined.
+DC_UseMacro  0
+
+# Specify the number of critical paths to be printed in the timing report of flows
+# using Design Compiler. The critical path is listed first within each path group.
+DC_NumPaths  500
+
+# Specifies an input floorplan to use with DC. Valid values are:
+# 0 - No floorplan - DC will use Fplan_AspectRatio and Fplan_CoreUtilization values instead
+# 1 - Use the DEF file specified by Fplan_File variable as the input floorplan
+# 2 - Use the TCL script specified by Fplan_File variable to generate the floorplan
+#     The TCL script must be generated with a write_floorplan command in ICC
+DC_FP_Use  0
+
+
+################################################################################
+#                                                                              #
+#                        RTL COMPILER (RC) VARIABLES			       #
+#                                                                              #
+################################################################################
+# In addition to the RC_* variables of this section, the following variables
+# need to be specified for the RTL Compiler flow to work: all of the non-derating
+# Target_* variables, Lib_SynopsysLIB, Lib_OperatingCondition, Lib_DriveCell,
+# Lib_DriveCellsPin, Lib_DriveCellPinFrom, Lib_BoundaryLoad, Lib_PreferCells,
+# Lib_DontUseCells, Lib_CadencePhysicalLibrary, Lib_MaxQrcTechFile, Lib_MaxCapTable
+
+# Specifies the clock uncertainty seen during all steps of the RC synthesis flow;
+# the same value is applied to all defined clocks in the design. As clocks are
+# ideal, this value is added to the Target_*ClockJitter values above and set
+# as the uncertainty value for all setup paths. As such, the combined value
+# is taken directly out of the maximum timing budget for each path.
+RC_SynthUncertainty  <float>
+
+# Specifies the technology dependent mapping effort of the synthesis step,
+# including any optional incremental passes. Allowed values are low, medium, and high.
+RC_Effort  high
+
+# Specifies the number of incremental passes performed in addition to the standard
+# synthesis flow (which includes one incremental pass already). Can be any
+# positive integer.
+RC_AdditionalPasses  2
+
+# Reads in a custom set of physical layout estimation (PLE) parameters that have been derived
+# for a particular design, floorplan, and library combination, which helps RC to correlate
+# with EDI. This encrypted file can be generated with the rc_custom_ple makefile target.
+# In addition, this file is required to activate the PAM and PAS algorithms described below.
+# The custom PLE flow is not available for standalone TIE (TDK) synthesis.
+RC_CustomPLEFile  _none_
+
+# Enables the RC-Physical (RCP) flow - this creates a complete, legalized placement and
+# optionally considers congestion as a cost function to generate a more physically-aware netlist.
+# The RCP flow requires an RC Advanced Physical license as well as an installed and licensed
+# version of EDI. For best results, the version of EDI should match that used for RC. Running RCP
+# requires an input floorplan. The RCP flow is not available for standalone TIE (TDK) synthesis.
+RC_RunPhysical  0
+
+# The following two variables enable advanced physically-aware synthesis techniques during the
+# mapping phase to improve correlation with EDI. Setting RC_UsePAM to 1 enables the physically
+# aware mapping (PAM) algorithm, which performs initial placement on registers so that subsequent
+# combinational mapping is long-wire aware. Setting RC_UsePAS to 1 enables the physically
+# aware structuring (PAS) algorithm, which targets high congestion modules such as cross bars
+# and mux chains to minimize congestion and improve timing. To use either the PAS or PAM
+# algorithms, the following four conditions must be met:
+#
+# 1) RCP must also be run by setting RC_RunPhysical to 1 above
+# 2) A custom PLE model must be defined using the RC_CustomPLEFile variable above
+# 3) A floorplan must be defined using the Fplan_File variable in the floorplanning section below
+# 4) RC_FP_Use must be set to 1 to load the floorplan defined with Fplan_File
+#
+# Neither PAS nor PAM is available for standalone TIE (TDK) synthesis.
+RC_UsePAM  0
+RC_UsePAS  0
+
+# Adds placement congestion as an additional cost constraint to RCP during incremental physical
+# optimization. This option is only relevant if RC_RunPhysical is also set to 1. By default,
+# congestion is not taken into account. The effort level applied to congestion optimization will
+# be the same as that set for RC_Effort above.
+RC_CongestionOpt  0
+
+# Specifies an input floorplan to use with RC. Valid values are:
+# 0 - No floorplan - RC will use Fplan_AspectRatio and Fplan_CoreUtilization values instead
+# 1 - Use the DEF file specified by Fplan_File variable as the input floorplan
+RC_FP_Use  0
+
+# Positive floating point scale factors for the wiring resistance and capacitance that RC derives
+# from the input libraries. These same scale factors are used for all metal layers, and are not
+# dependent upon wire length. These can be used to adjust timing correlation between RC and EDI.
+# A value of 1 implies no scaling.
+RC_ResScaleFactor  1
+RC_CapScaleFactor  1
+
+# Total negative slack (TNS) optimization - by default RTL Compiler optimizes only the worst
+# negative slack (WNS) of each timing pathgroup, so that it can minimize design area by
+# sacrificing timing on non-critical paths. However, these non-critical paths can still violate
+# timing, and might turn critical during backend flows. Setting the following variable to 1
+# tells RC to optimize all violating timing paths in the design. This may increase total design
+# area and tool runtime. However, it usually improves the WNS on all path groups.
+RC_OptimizeTNS  1
+
+# Specifies if static (leakage) power optimization should be performed during the
+# incremental compile passes. Though designed for use with multiple threshold libraries,
+# it also reduces static power when using a single threshold library. If set to 1,
+# even if RC_AdditionalPasses is set to 0, at least one additional incremental pass
+# will be performed. Note that this is a separate concept from the total low-power
+# effort activated with the Target_LowPowerFlow variable. The latter implements clock and
+# data gating insertion, while RC_OptimizeStaticPower should be used independently when
+# wanting maximum netlist speed in addition to lower static power.
+RC_OptimizeStaticPower  0
+
+# Relax the I/O path constraints by this value, specified in the target library time unit,
+# prior to the main synthesis step. This allows the tool to focus more heavily on the
+# register to register timing paths. Specifying a negative value has the effect of further
+# tightening the I/O path constraints.
+RC_PathAdjust  0
+
+# On-chip-variation (OCV) derating factors - RC has a limited capability to support
+# sdc based derating factors, as they apply only to library cells, and support only
+# the -cell_delay and -cell_check options to the set_timing_derate command. The values
+# below are scale factors that are applied to the delay arcs from the liberty library,
+# and must fall within the range 0.1 to 2.0. A value of 1 implies no derating.
+RC_CellDelayDerate  1
+RC_CellCheckDerate  1
+
+# Specifies if custom hard macros, such as register files or integrated clock gating (ICG)
+# cells, are used in the flow. This requires editing of the hard_macros.v file in this
+# directory. Since the clock tree synthesis performance of backend tools is superior with
+# ICGs, this is enabled by default. If using any hard macros, ICGs must always be defined.
+RC_UseMacro  1
+
+# Controls retiming of multicycle TIE instructions. There are two classes of multicycle
+# TIE instructions - those found in Tensilica coprocessors (such as HiFi2, FPU, and Vectra2),
+# and those found in user TIE. The Tensilica coprocessors have been written to be well
+# balanced and hence do not generally require retiming by RTL Compiler - the control variable
+# is provided to allow for experimentation. Multicycle user-generated TIE should be retimed
+# by RTL Compiler to achieve the best possible performance. If the required RTL_Compiler_Ultra_II_Option
+# license is unavailable, or if retiming is not desired for formal verification purposes, set
+# both of these variables to zero.
+RC_AllowUserRetiming  1
+RC_AllowCoprocRetiming  0
+
+# Specify the number of critical paths to be printed in the timing report of flows
+# using RTL Compiler. The critical path is listed first within each path group.
+RC_NumPaths  500
+
+# Write out the parasitics (resistance and capacitance information) of the design in
+# SPEF format. This file is useful for performing power analysis on a post-RC netlist.
+RC_WriteSPEF  0
+
+
+################################################################################
+#                                                                              #
+#                        IC COMPILER (ICC) VARIABLES                           #
+#                                                                              #
+################################################################################
+# In addition to the ICC_* variables of this section, the following variables
+# need to be specified for the IC Compiler flow to work: all of the Target_*
+# variables, Lib_SynopsysDB, Lib_SynopsysMinDB, Lib_DriveCell, Lib_OperatingCondition,
+# Lib_DriveCellsPin, Lib_DriveCellPinFrom, Lib_BoundaryLoad, Lib_PreferCells,
+# Lib_DontUseCells, Lib_SynopsysTechFile, Lib_SynopsysPhysicalLibrary, Lib_MaxTLUPlus,
+# Lib_MinTLUPlus, Lib_LayerNameMapFile, Lib_ClockBuffers, Lib_ClockInverters,
+# and all of the Fplan_* variables.
+
+# ICC optimizes the paths in each path group that are within critical range
+# time units of the critical path. Setting this variable to 0 causes ICC to
+# focus only on the WNS of each path group, reducing area at the expense of speed.
+ICC_CriticalRange  0.564
+
+# By default, ICC performs timing driven placement with area recovery. For large
+# designs with high utilization ratios, or for designs that cannot easily be
+# routed, try turning this switch on to enable congestion optimization both during
+# placement and clock tree synthesis. This has the potential to negatively impact
+# timing on non-congested designs. To improve correlation, it is recommended to
+# set this variable to 1 if also setting Syn_UseSPG to 1.
+ICC_CongestionDrivenPlacement  0
+
+# Allows ICC to dynamically relocate top-level pins to different locations
+# in the floorplan. This can minimize the length of I/O routing resources,
+# reducing congestion in the design. This step should not be used if any of
+# the pin locations have been fixed via the Fplan_*PinList variables. This
+# variable is ignored if Syn_UseSPG is set to 1.
+ICC_PinOpt  1
+
+# Allows ICC to perform signal integrity and crosstalk corrections to the design,
+# such as shielding aggressor nets and minimizing parallel run lengths.
+ICC_SI  1
+
+# Defines a non-default routing rule (NDR) to shield all clock nets in the design.
+# Shielding wires are placed on both sides of a given clock net (snapped to the
+# track grid), on the same layer of metal (no coaxial shielding), with all
+# shielding wires connected to the ground net defined with the Fplan_GroundNetName
+# variable. Shielding the clock nets can be beneficial for sub-28nm libraries
+# and designs with aggressive signal integrity issues. ICC_SI must be set to 1
+# for this variable to be set to 1.
+ICC_ShieldClock  0
+
+# Specify the number of paths to be printed in the timing report of flows
+# using IC Compiler. The critical path is listed first within each path group.
+ICC_NumPaths  500
+
+# Write out post-ICC standard delay format (SDF) file. This is necessary to
+# perform gate-level functional simulations.
+ICC_WriteSDF  1
+
+# Perform 2.5D net capacitance extraction, including coupling capacitance,
+# and generate a SPEF file in compressed gzip format. This is useful for
+# final timing analysis if a standalone 3D extraction tool is unavailable.
+# This file is also required to perform power analysis on a post-ICC netlist.
+ICC_WriteSPEF  1
+
+# Specifies how ICC generates the floorplan. Valid values are -
+# 0 - Use Tensilica's automated floorplanner for Xttop PNR and continue with
+#     PNR flow after floorplan has been generated.
+# 1 - Use Tensilica's automated floorplanner for Xttop PNR, save floorplan
+#     DEF and exit. The user can then refine this floorplan. 
+# 2 - Use Tensilica's automated floorplanner for Xtmem PNR and continue with
+#     PNR flow after floorplan has been generated.
+# 3 - Use Tensilica's automated floorplanner for Xtmem PNR, save floorplan
+#     DEF and exit. The user can then refine this floorplan. 
+# 4 - Use the DEF file specified by Fplan_File variable as the floorplan
+# 5 - Use the TCL script specified by Fplan_File variable to generate the floorplan
+#     The TCL script must be generated with a write_floorplan command in ICC.
+ICC_FP_Use  0
+
+
+################################################################################
+#                                                                              #
+#                      	   FLOOR PLAN VARIABLES                                #
+#                                                                              #
+################################################################################
+# Following variables are used to control and customize the design's floor plan.
+# A floor plan consists of a bounding box (also called PR boundary or I/O boundary),
+# a core area, a power plan, the block placement if the design contains hard macros,
+# and I/O pin placement. The bounding box is the enclosure of all physical objects.
+# I/O pins are placed abutting the bounding box. The core is a rectangular area 
+# inside the bounding box. Core is filled with horizontal placement rows where 
+# cells can be placed. Optionally, a pair of power and ground rings can be placed 
+# between the core and the bounding box and several pairs of power and ground 
+# stripes can be placed vertically across the core area connecting to the power
+# rings and the power rails of the standard cells.
+#
+# All numbers are in microns.
+
+# Specify the aspect ratio and the utilization of a rectangular floor plan area.
+# Aspect ratio is y-dimension/x-dimension.
+# Fplan_CoreUtilization must be between 0.0 and 1.0
+# For core only designs (xttop), core area = std cell area / Fplan_CoreUtilization
+# For core + mem designs (xtmem), core area = (std cell area / Fplan_CoreUtilization) 
+#                                           + (memory macro area + memory keepout area)
+# Lower utilization allows more routing space, but increases die area.
+# Higher utilization reduces die area at the expense of routing space (and may improve 
+# performance).
+Fplan_AspectRatio  1
+Fplan_CoreUtilization  0.60
+
+# Specify the distance in um between the core boundary and the I/O boundary.
+# When core power rings are created, this distance should be wide enough to accommodate
+# both the rings and their minimum spacing requirements.
+Fplan_CoreToIOSpacing  30
+
+# Specify the max number of routing layers to be used in this design. 
+# For example, if the process used has 6 routing layers and the top layer is reserved for
+# power distribution, then Fplan_MaxRoutingLayer = 5
+Fplan_MaxRoutingLayer  8
+
+# Specify the I/O pin layers.
+Fplan_TopBottomPinLayer  M6
+Fplan_LeftRightPinLayer  M5
+ 
+# To force the I/O pins to be placed on specific sides, use these variables
+# to specify the list of I/O ports per side. The order of the pins in the
+# list is preserved. For the left side, pins are ordered bottom->top,
+# for the top side, pins are ordered left->right, for the right side, pins are
+# ordered top->bottom, and for the bottom side, pins are ordered right->left.
+# Module pins not specified in these lists will be placed automatically. Bus names can
+# be specified several ways. If PIData is a 64-bit bus, then just "PIData" will specify
+# bits 0 through 63, PIData[4:0] sequentially specifies bits 4 through 0, PIData[0:4]
+# sequentially specifies bits 0 through 4, and PIData[4] will use just bit 4.
+# For example, {CLK BReset PIData POData[4:0]}
+# Optional.
+#Fplan_LeftPinList    {<string> ...}
+#Fplan_RightPinList   {<string> ...}
+#Fplan_TopPinList     {<string> ...}
+#Fplan_BottomPinList  {<string> ...}
+
+# Specify the power and ground net names for the design.
+# For example: VDD
+Fplan_PowerNetName   VDD
+Fplan_GroundNetName  VSS
+
+# Specify the std. cell power/ground rail metal layer for 
+# IR drop estimation during power network synthesis
+Fplan_PowerGroundRailLayer M1
+
+# Specify the following variables if core power rings are to be created
+# around the design.
+Fplan_PowerRingHorizontalLayer      M9
+Fplan_PowerRingVerticalLayer        M10
+Fplan_PowerCoreRingHorizontalWidth  10
+Fplan_PowerCoreRingVerticalWidth    10
+Fplan_PowerCoreRingVerticalSpace    2
+Fplan_PowerCoreRingHorizontalSpace  2
+
+# Specify the following four variables if power stripes are be created vertically
+# across the standard cell rows.
+Fplan_PowerStripeCount          10
+Fplan_PowerStripeSpacing        50
+Fplan_PowerStripeWidth          2
+Fplan_PowerStripeVerticalLayer  M10
+
+# Floorplan to be used in DC/RC/ICC/EDI flows. Modify *_FP_Use variables
+# to enable floorplan reading for respective tools.
+Fplan_File  _none_
+
+# For Xtmem place and route, the floorplan can be specified by width and height
+# or by core utilization and aspect ratio. Set this variable to 'xy_dim' to specify
+# width and height or to 'util' to specify utilization and aspect ratio for the
+# floorplan. This variable is relevant only for Xtmem place and route flow.
+Fplan_SpecifyBy  util
+
+# Specify width of the floorplan in microns. This variable is relevant only when
+# Fplan_SpecifyBy is xy_dim
+Fplan_Width  0
+
+# Specify height of the floorplan in microns. This variable is relevant only when
+# Fplan_SpecifyBy is xy_dim
+Fplan_Height  0
+
+# Specify width of 'halo' around a memory macro. No standard cell or macro will be
+# placed within the halo. Specifying too low a value will cause routing congestion
+# near the macro. This variable is relevant only for Xtmem place and route flow.
+Fplan_KeepoutMargin  10.0
+
+# Specify width of 'channels' around a memory macro. Standard cells can be
+# placed within the channel. Specifying too low a value may cause timing degradation
+# as there may not be enough space for buffering near the macro. Channel width is
+# measured from the boundary of KeepoutMargin halo. This variable is relevant only
+# for Xtmem place and route flow.
+Fplan_MacroChannelSpacing  10.0
+
+# Set this variable to 1 to generate power rings around the core. This option must
+# be enabled unless power rings exist outside Xtensa on the SoC. This variable
+# is relevant only for Xtmem place and route flow.
+Fplan_CreateCoreRings  1
+
+# Core power rings can be offset from the core boundary. Use this variable to
+# specify the separation between innermost power ring and core boundary. This
+# variable is relevant only for Xtmem place and route flow.
+Fplan_PowerCoreRingOffset  0.0
+
+# Set to 1 to enable generation of power straps across power rails. This
+# variable is relevant only for Xtmem place and route flow.
+Fplan_CreatePowerStraps  1
+
+# Set to 1 to allow power straps to pass over memory macros. This might cause power 
+# straps to have DRCs with memory. However, it usually provides for continuous straps
+# which improves IR drop. This variable is relevant only for Xtmem place and route flow.
+Fplan_StrapsOverMacros  1
+
+# Set to 1 to allow power ring generation around memory macros. Recommendation is to
+# enable rings. This allows for better SI isolation of memory macros and neighboring
+# standard cells at the cost of ring area. This variable is relevant only for Xtmem
+# place and route flow.
+Fplan_CreateMacroRings  1
+
+# Specify metal layer to be used for vertical edges of memory macro power rings.
+# This variable is relevant only for Xtmem place and route flow.
+Fplan_PowerMacroRingVerticalLayer  M7
+
+# Specify metal layer to be used for vertical edges of memory macro power rings.
+# This variable is relevant only for Xtmem place and route flow.
+Fplan_PowerMacroRingHorizontalLayer  M8
+
+# Macro power rings can be offset from the macro boundary. Use this variable to
+# specify the separation between innermost macro power ring and macro boundary. This
+# variable is relevant only for Xtmem place and route flow.
+Fplan_PowerMacroRingOffset  2.0
+
+# Specify width of individual macro ring wires in microns. This variable is relevant
+# only for Xtmem place and route flow.
+Fplan_PowerMacroRingWidth 2
+
+# Specify spacing between macro ring wires in microns. This variable is relevant
+# only for Xtmem place and route flow.
+Fplan_PowerMacroRingSpace  2
+
+# Specify nomimal VDD to be used for IR analysis in volts. IR analysis is
+# performed during auto-floorplanning to analyze synthesized power plan.
+# This variable is relevant only for Xtmem place and route flow.
+Fplan_NomVDD  0.9
+
+# Specify allowed IR drop as a percentage of nominal VDD. The flow will generate
+# an error if this limit is violated and stop. Timing margins and derates usually
+# depend on IR drop. This variable is relevant only for Xtmem place and route flow.
+Fplan_AllowedIRDropPct  5.0
+
+# Set this to 1 to block metal layers over memory macros. Memory macro pins made
+# inaccessible as a result may cause opens and/or DRCs.
+Fplan_BlockRoutingOverMacro  1
+
+
+################################################################################
+#                                                                              #
+#             ENCOUNTER DIGITAL IMPLEMENTATION (EDI) VARIABLES                 #
+#                                                                              #
+################################################################################
+# In addition to the EDI_* variables of this section, the following variables
+# need to be specified for EDI to work: all of the Target_* variables,
+# Lib_SynopsysLIB, Lib_SynopsysMinLIB, Lib_CadencePhysicalLibrary,
+# Lib_ClockBuffers, Lib_ClockInverters, and all of the Fplan_* variables.
+# Specify atleast one of the following: (Lib_MaxQrcTechFile and Lib_MinQrcTechFile)
+# or (Lib_MaxCapTable and Lib_MinCapTable). Use of QrcTechFile is recommended.
+
+# IO pin placement and optimization settings. Valid values are: 
+# 0: Use EDI pin optimization to place IO pins.
+# 1: Place IO pins according to recommended guidelines (instruction memory pins
+#    on the left edge, data memory pins on the right edge, processor interface
+#    pins on the top edge).
+# 2: No pin placement/optimization.
+# Note that no pin placement/optimization is performed if RC_RunPhysical=1.
+# When EDI_PlaceIOPins=1, pin layers can be specified using
+# $Fplan_TopBottomPinLayer and $Fplan_LeftRightPinLayer variables in the 
+# CadSetup.file
+EDI_PlaceIOPins  1
+
+# Specify the number of paths to be printed in the timing reports of flows
+# using EDI
+EDI_NumPaths  500
+
+# Export SDF 
+EDI_WriteSDF  1
+
+# Perform net capacitance extraction, including coupling capacitance,
+# and generate a SPEF file. This is useful for final timing analysis if 
+# a standalone 3D extraction tool is unavailable.
+# This file is also required to perform power analysis on a post-ICC netlist.
+EDI_WriteSPEF  0
+
+# Specifies how EDI generates the floorplan. Valid values are -
+# 0 - Use Tensilica's automated floorplanner for Xttop PNR and continue with
+#     PNR flow after floorplan has been generated.
+# 1 - Use Tensilica's automated floorplanner for Xttop PNR, save floorplan
+#     DEF and exit. The user can then refine this floorplan. 
+# 2 - Use Tensilica's automated floorplanner for Xtmem PNR and continue with
+#     PNR flow after floorplan has been generated.
+# 3 - Use Tensilica's automated floorplanner for Xtmem PNR, save floorplan
+#     DEF and exit. The user can then refine this floorplan. 
+# 4 - Use the DEF file specified by Fplan_File variable as the floorplan
+# 5 - Use the DEF file specified by Fplan_File variable as the floorplan
+#     and do NOT import def generated post RCP synthesis. Applicable 
+#     when RC_RunPhysical=1
+#Note that when RC_RunPhysical=1, the def file output by RCP will be used as the
+#floorplan into EDI unless EDI_FP_Use=5.
+EDI_FP_Use  0
+
+#Set EDI_TwoPass=1 to enable the two-pass EDI flow. During the first pass, EDI
+#will determine optimal pre-route RC scaling factors using Ostrich. During the
+#second pass, EDI will apply these factors before optimization. This may improve
+#performance at the cost of runtime.
+EDI_TwoPass  0
+
+#Set EDI_CcoptUsefulSkewEnabled=1 to enable CCOPT useful skew optimization. This 
+#feature needs a CCOPT license. 
+EDI_CcoptUsefulSkewEnabled  1
+
+#EDI preCTS uncertainty for better QoR postCTS. High preCTS uncertainty
+#may achieve better QoR results at the expense of runtime and/or area. This
+#uncertainty is in addition to the clock jitter and is specified in the library
+#unit.
+EDI_PreCTSUncertainty  0.1
+
+#EDI CTS uncertainty for better QoR postRoute. High preRoute uncertainty
+#may achieve better QoR results at the expense of runtime and/or area. This
+#uncertainty is in addition to the clock jitter and is specified in the library
+#unit.
+EDI_CTSUncertainty  0.1
+
+#High postRoute uncertainty may achieve better QoR results at the expense of
+#runtime and/or area. This uncertainty is in addition to the clock jitter and
+#is specified in the library unit.
+EDI_PostRouteUncertainty  0.05
+
+#Setting EDI_EnablePathGroups to 1 improves mem_io performance. Setting it to
+#0 might improve flop2flop performance at the expense of mem_io.
+EDI_EnablePathGroups  1
+
+#Setting EDI_EnablePowerPlan to 1 generates core rings, power straps, and
+#power and ground rails in the floorplan. Layers used for power plan elements, 
+#and their width and spacing are specified using the Fplan_* variables in the
+#CadSetup.file. If you enable EDI_EnablePowerPlan, please populate related 
+#Fplan_* variables.
+EDI_EnablePowerPlan  0
+
+
+################################################################################
+#                                                                              #
+#                         QRC EXTRACTION VARIABLES                             #
+#                                                                              #
+################################################################################
+# The following section is relevant only for the standard min/max timing
+# analysis flow. If performing the MCMM flow, specify all QRC command files
+# within the mcmm_scenarios.txt file.
+# Command files used to drive the Cadence QRC extraction tool. These consist
+# of paths to target technology files, as well as extraction-specific
+# information, such as the technology layer map definition. Two files can be
+# specified - the mandatory worst/slow corner file for setup path testing,
+# and the optional best/fast corner file for hold path testing - if the
+# best/fast file is not specified or is the same as that given for the
+# worst/slow corner, then only a single QRC run will be performed.
+
+# QRC command file for worst/slow corner (mandatory)
+QRC_MaxCmdFile  <MaxCmdFileName>
+
+# QRC command file for best/fast corner (optional)
+QRC_MinCmdFile  <MinCmdFileName>
+
+
+################################################################################
+#                                                                              #
+#                            PRIMETIME VARIABLES                               #
+#                                                                              #
+################################################################################
+# In addition to the PT_* variables of this section, the following variables
+# need to be specified for the PrimeTime flow to work: all of the Target_*
+# variables, Lib_SynopsysDB, Lib_SynopsysMinDB, Lib_DriveCell, Lib_OperatingCondition,
+# Lib_MinOperatingCondition, Lib_DriveCellsPin, Lib_DriveCellPinFrom, Lib_BoundaryLoad. 
+
+# Perform Signal Integrity analysis. This requires a PrimeTime-SI license.
+# To not perform SI analysis, set this variable to 0.
+PT_SI  1
+
+# Specify the number of paths to be printed in the timing reports of flows
+# using PrimeTime. The critical path is listed first within each path group.
+PT_NumPaths  500
+
+# Write out post-PrimeTime standard delay format (SDF) files.
+PT_WriteSDF  1
+
+
+################################################################################
+#                                                                              #
+#              Tempus Timing Signoff Solution (Tempus) VARIABLES               #
+#                                                                              #
+################################################################################
+# In addition to the Tempus_* variables of this section, the following variables need
+# to be specified for the Tempus Timing Signoff Solution flow to work: all of the Target_*
+# variables, Lib_SynopsysLIB, Lib_SynopsysMinLIB, Lib_DriveCell, Lib_OperatingCondition,
+# Lib_MinOperatingCondition, Lib_DriveCellsPin, Lib_DriveCellPinFrom, Lib_BoundaryLoad.
+
+# Perform Signal Integrity analysis. 
+# To not perform SI analysis, set this variable to 0.
+Tempus_SI  1
+
+# Specify the number of paths to be printed in the timing reports of flows
+# using Tempus. The critical path is listed first within each path group.
+Tempus_NumPaths  500
+
+# Write out post-Tempus standard delay format (SDF) files.
+Tempus_WriteSDF  1
+
+# Tempus will Perform Signoff Optimization to Minimize Leakage 
+# Power using Sizing/Cell Change and Vt-Swap using HVT/low leakage libraries
+# An ECO file input to EDI will be dumped to generate a new netlist
+# Set this variable to 1 for logical leakage optimization
+# Set this variable to 3 for physical leakage optimization
+Tempus_TSO_Opt  0
+
+# Specify a list of target libraries in Liberty (*.lib) format for the
+# TSO optimization. These should contain all the combinational and
+# sequential cells (LVT, HVT etc), including any hard macros, intended for optimization use.
+# For example, {/lib/130nm/synopsys/slow.lib /lib/130nm/mylib/special.lib}
+Lib_TSOMaxLIB  {<string>}
+
+# Specify a list of target libraries in Liberty (*.lib) format for the
+# TSO optimization. These should contain all the combinational and
+# sequential cells (LVT, HVT etc), including any hard macros, intended for optimization use.
+# For example, {/lib/130nm/synopsys/fast.lib}
+Lib_TSOMinLIB  {<string>}
+
+# List of physical reference libraries in Cadence LEF format. 
+# For example, {my_lib/lib.lef my_lib/macro.lef}
+# If specifying multiple files, the technology .lef (containing the metal
+# layer definitions) must be listed first. Use spaces to separate list entries.
+# Include lefs (LVT, HVT etc)
+Lib_TSOLef  {<string>}
+

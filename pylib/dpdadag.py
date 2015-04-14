@@ -433,6 +433,5 @@ if __name__ == "__main__":
   sourceFile = sys.argv[1]
   graph = parse_dpda(sourceFile)
 
-  #embed()
   print graph.kernels
   print graph.edges
