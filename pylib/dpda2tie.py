@@ -48,10 +48,25 @@ def write_complex_op_tie(writer, op, datatype):
 
 
 def write_kernel_ops(w, k, startName):
+
+  #Special Register Examples for Reduce:
+  #fix_17_0 pixel_out_pos[1:0]  # Location of Reduce pixel in output image
+  #fix_17_0 centroid_pos[1:0]  # Location of Centroid in input image
+  if "centroid_pos" in k.specialRegs:
+    w.writeln("int centroid_pos_0 = x;")
+    w.writeln("int centroid_pos_1 = y;")
+
+  if "pixel_out_pos" in k.specialRegs:
+    w.writeln("int pixel_out_pos_0 = x;")
+    w.writeln("int pixel_out_pos_1 = y;")
+
+
   # Create a list of (name, index) tuples representing the valid (i.e., evaluated) signal
   validRegs = [(startName, i) for i in dpdadag.expand_range(k.edges[startName].dim)]
-  for tapName in k.rtapNames:
-    validRegs += [(tapName, i) for i in dpdadag.expand_range(k.edges[tapName].dim)]
+  validRegs += [(tapName, i) for tapName in k.rtapNames 
+                for i in dpdadag.expand_range(k.edges[tapName].dim)]
+  validRegs += [(regName, i) for regName in k.specialRegs 
+                for i in dpdadag.expand_range(k.edges[regName].dim)]
   validRegs += [(c[0], [0]) for c in k.constants]
   
   # Make a copy of the list of operations which we can remove stuff from
@@ -88,6 +103,10 @@ def write_kernel_ops(w, k, startName):
           w.writeln("{dtype} {dst} = and16_vv({op1}, {op2});".format(dtype=dtype, dst=compile.mangle(op.result), op1=compile.mangle(op.operands[0]), op2=compile.mangle(op.operands[1])))
         elif op.name == "or":
           w.writeln("{dtype} {dst} = or16_vv({op1}, {op2});".format(dtype=dtype, dst=compile.mangle(op.result), op1=compile.mangle(op.operands[0]), op2=compile.mangle(op.operands[1])))
+        elif op.name == "ne":
+          w.writeln("{dtype} {dst} = ne16_vv({op1}, {op2});".format(dtype=dtype, dst=compile.mangle(op.result), op1=compile.mangle(op.operands[0]), op2=compile.mangle(op.operands[1])))
+        elif op.name == "eq":
+          w.writeln("{dtype} {dst} = ne16_vv({op1}, {op2});".format(dtype=dtype, dst=compile.mangle(op.result), op1=compile.mangle(op.operands[0]), op2=compile.mangle(op.operands[1])))
         elif op.name == "lt":
           w.writeln("{dtype} {dst} = lt16_vv({op1}, {op2});".format(dtype=dtype, dst=compile.mangle(op.result), op1=compile.mangle(op.operands[0]), op2=compile.mangle(op.operands[1])))
         elif op.name == "lte":
@@ -98,6 +117,12 @@ def write_kernel_ops(w, k, startName):
           w.writeln("{dtype} {dst} = gte16_vv({op1}, {op2});".format(dtype=dtype, dst=compile.mangle(op.result), op1=compile.mangle(op.operands[0]), op2=compile.mangle(op.operands[1])))
         elif op.name == "inv":
           w.writeln("{dtype} {dst} = inv16_vv({src});".format(dtype=dtype, dst=compile.mangle(op.result), src=compile.mangle(op.operands[0])))
+
+        elif op.name == "not":
+          w.writeln("{dtype} {dst} = not16_vv({src});".format(dtype=dtype, dst=compile.mangle(op.result), src=compile.mangle(op.operands[0])))
+
+        elif op.name == "abs":
+          w.writeln("{dtype} {dst} = abs16_vv({src});".format(dtype=dtype, dst=compile.mangle(op.result), src=compile.mangle(op.operands[0])))
 
         elif op.name == "mux":
           w.writeln("{dtype} {dst} = mux16_vv({cond}, {op1}, {op2});".format(dtype=dtype, dst=compile.mangle(op.result), \
@@ -160,7 +185,6 @@ def write_kernel_tie(w, k, code_type):
   # Set up the constants
   w.writeln("// Set up the constant values")
   for const in k.constants:
-    # TODO: be careful here, because we need to be consistent with naming/indexing
     # TODO: handle int/float; infer datatype in parser
     w.writeln("register vector32 {sig} asm(\"v32r{idx}\"); // keep in the register\n"
               "  {sig} = mv16_sv({val});"
@@ -282,6 +306,8 @@ def write_kernel_tie(w, k, code_type):
       w.writeln("{sig} = in_ptr[(y+{yoff})*IN_WIDTH*IN_CHANNELS + (x+{xoff})*IN_CHANNELS + {z}];".format(sig=sigName, xoff=x_offset, yoff=(indices[0]-k.centroid[1]+y_base_offset), z=z_idx))
 
   w.writeln()
+
+
   w.writeln("// Start operation")
   write_kernel_ops(w, k, startName)
 
@@ -582,6 +608,7 @@ if __name__ == "__main__":
 
   dag = dpdadag.parse_dpda(sourceFile)
 
+  print ("writing kernel header file...")
   w = compile.CodeWriter("./pipeline.h")
   w.writeln("#ifndef _PIPELINE_H_")
   w.writeln("#define _PIPELINE_H_")
@@ -615,11 +642,13 @@ if __name__ == "__main__":
 
 
   for k in dag.kernels.values():
+      print ("writing test for kernel {}...".format(k.name))
       w = compile.CodeWriter("./test_{}.cpp".format(k.name))
       write_test_kernel(w, k)
       w.close()
 
 
+  print ("writing kernel source...")
   w = compile.CodeWriter("./pipeline.cpp")
   w.writeln("#include \"pipeline.h\"")
   w.writeln()
@@ -630,9 +659,11 @@ if __name__ == "__main__":
   w.writeln("#include <xtensa/xt_reftb.h>")
   w.writeln()
   for k in dag.kernels.values():
-    write_kernel_tie(w, k, 'source')
+      print ("\twriting kernel {}...".format(k.name))
+      write_kernel_tie(w, k, 'source')
   w.close()
 
+  print ("writing main test file".format(k.name))
   w = compile.CodeWriter("./test.cpp")
   w.writeln("#include <stdio.h>")
   w.writeln("#include <stdlib.h>")
