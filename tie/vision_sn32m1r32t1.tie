@@ -1,5 +1,15 @@
 ; my $N = 32;
 ; my $R = 32;
+; my $fusion = 1;
+
+format f32 32  {slot_f32}
+slot_opcodes slot_f32 {mux16.vv
+; if ($fusion) {
+	     	      ,fusion2.sum316.vv, 
+		       fusion2.clamp16.vv,
+                       fusion2.multRshift16.vv
+; } # end of 'if ($fusion)'
+}
 
 // R-entry N-way SIMD vector regfile
 ; printf("regfile vector32 %d %d v32r\n", $N*16, $R); 
@@ -233,6 +243,24 @@ operation getl16.vv {out vector32 des, in vector32 src1}{}
 
 ; } # end of 'foreach $op...'
 
+
+operation div16.vv
+{out vector32 des, in vector32 src1, in vector32 src2}{}
+{
+; foreach $i (0..($N-1)) {
+;   printf("  wire [15:0] res%d = func_rshift16(src1[%d:%d], 16'h2);\n",
+;           $i, ($i*16 + 15), ($i*16));
+; } # end of 'foreach $i...'
+
+  assign des = {
+; for( my $i = $N-1; $i >= 1; $i -= 1 ) {
+;   printf("res%d, ",$i); 
+; } # end of 'foreach $i...'
+  res0
+  };
+}
+
+
 // Ternary operations
 operation mux16.vv {out vector32 des, in vector32 src1, 
                     in vector32 src2, in vector32 src3}{}
@@ -312,14 +340,14 @@ proto vector32_loadiu {out vector32 v, inout vector32 *p, in immediate o} {} {
 proto vector32_storeiu {in vector32 v, inout vector32 *p, in immediate o} {} {
   stiu.vv v, p, o;
 }
-proto vec64_loadxu { out vector32 v, inout vector32 *p, in int32 x} {} {
+proto vector32_loadxu { out vector32 v, inout vector32 *p, in int32 x} {} {
   ldxu.vv v,p,x;
 }
-proto vec64_storexu { in vector32 v, inout vector32 *p, in int32 x} {} {
+proto vector32_storexu { in vector32 v, inout vector32 *p, in int32 x} {} {
   stxu.vv v,p,x;
 }
 
-
+; if ($fusion == 1) {
 
 ####################
 ## mac
@@ -343,6 +371,9 @@ operation fusion2.mac16.vv {inout vector32 des, in vector32 src1,
   res0
   };
 }
+
+// data gate
+property data_gate fusion2.mac16.vv {src1, src2, des}
 
 imap fusion2.mac16.vv.case1 {inout vector32 des, in vector32 src1, 
                     in vector32 src2}
@@ -371,3 +402,191 @@ imap fusion2.mac16.vv.case2 {inout vector32 des, in vector32 src1,
     add16.vv des, des, prod;
   }
 }
+
+
+####################
+## clamp
+####################
+
+operation fusion2.clamp16.vv {out vector32 des, in vector32 src1, 
+                    in vector32 src2, in vector32 src3}{}
+{
+; foreach $i (0..($N-1)) {
+;   printf("  wire [15:0] max%d = func_max16(src1[%d:%d], src2[%d:%d]);\n",
+;           $i, ($i*16 + 15), ($i*16), ($i*16 + 15), ($i*16));
+
+;   printf("  wire [15:0] res%d = func_min16(max%d, src3[%d:%d]);\n",
+;           $i,  $i, ($i*16 + 15), ($i*16));
+; } # end of 'foreach $i...'
+
+  assign des = {
+; for( my $i = $N-1; $i >= 1; $i -= 1 ) {
+;   printf("res%d, ",$i); 
+; } # end of 'foreach $i...'
+  res0
+  };
+}
+
+// data gate
+property data_gate fusion2.clamp16.vv {src1, src2, src3}
+
+
+imap fusion2.clamp16.vv.case1 {out vector32 des, in vector32 src1, 
+                    in vector32 src2, in vector32 src3}
+{ {}
+  {
+    fusion2.clamp16.vv des, src1, src2, src3;
+  }
+}
+{ {vector32 max}
+  {
+    max16.vv	max, src1, src2;
+    min16.vv	des, max, src3;
+  }
+}
+
+imap fusion2.clamp16.vv.case2 {out vector32 des, in vector32 src1, 
+                    in vector32 src2, in vector32 src3}
+{ {}
+  {
+    fusion2.clamp16.vv des, src1, src2, src3;
+  }
+}
+{ {vector32 max}
+  {
+    max16.vv	max, src1, src2;
+    min16.vv	des, src3, max;
+  }
+}
+
+
+
+imap fusion2.clamp16.vv.case3 {out vector32 des, in vector32 src1, 
+                    in vector32 src2, in vector32 src3}
+{ {}
+  {
+    fusion2.clamp16.vv des, src1, src2, src3;
+  }
+}
+{ {vector32 min}
+  {
+    min16.vv	min, src1, src3;
+    max16.vv	des, min, src2;
+  }
+}
+
+imap fusion2.clamp16.vv.case4 {out vector32 des, in vector32 src1, 
+                    in vector32 src2, in vector32 src3}
+{ {}
+  {
+    fusion2.clamp16.vv des, src1, src2, src3;
+  }
+}
+{ {vector32 min}
+  {
+    min16.vv	min, src1, src3;
+    max16.vv	des, src2, min;
+  }
+}
+
+
+
+####################
+## sum
+####################
+
+operation fusion2.sum316.vv {out vector32 des, in vector32 src1, 
+                    in vector32 src2, in vector32 src3}{}
+{
+; foreach $i (0..($N-1)) {
+;   printf("  wire [15:0] sum%d = func_add16(src1[%d:%d], src2[%d:%d]);\n",
+;           $i, ($i*16 + 15), ($i*16), ($i*16 + 15), ($i*16));
+
+;   printf("  wire [15:0] res%d = func_add16(sum%d, src3[%d:%d]);\n",
+;           $i,  $i, ($i*16 + 15), ($i*16));
+; } # end of 'foreach $i...'
+
+  assign des = {
+; for( my $i = $N-1; $i >= 1; $i -= 1 ) {
+;   printf("res%d, ",$i); 
+; } # end of 'foreach $i...'
+  res0
+  };
+}
+
+// data gate
+property data_gate fusion2.sum316.vv {src1, src2, src3}
+
+imap fusion2.sum316.vv.case1 {out vector32 des, in vector32 src1, 
+                    in vector32 src2, in vector32 src3}
+{ {}
+  {
+    fusion2.sum316.vv des, src1, src2, src3;
+  }
+}
+{ {vector32 sum}
+  {
+    add16.vv sum, src1, src2;
+    add16.vv des, src3, sum;
+  }
+}
+
+imap fusion2.sum316.vv.case2 {out vector32 des, in vector32 src1, 
+                    in vector32 src2, in vector32 src3}
+{ {}
+  {
+    fusion2.sum316.vv des, src1, src2, src3;
+  }
+}
+{ {vector32 sum}
+  {
+    add16.vv sum, src1, src2;
+    add16.vv des, sum, src3;
+  }
+}
+
+
+####################
+## mult and rshift
+####################
+
+operation fusion2.multRshift16.vv {out vector32 des, in vector32 src1, 
+                    in vector32 src2, in vector32 src3}{}
+{
+; foreach $i (0..($N-1)) {
+;   printf("  wire [15:0] prod%d = func_mult16(src1[%d:%d], src2[%d:%d]);\n",
+;           $i, ($i*16 + 15), ($i*16), ($i*16 + 15), ($i*16));
+
+;   printf("  wire [15:0] res%d = func_rshift16(prod%d, src3[%d:%d]);\n",
+;           $i,  $i, ($i*16 + 15), ($i*16));
+; } # end of 'foreach $i...'
+
+  assign des = {
+; for( my $i = $N-1; $i >= 1; $i -= 1 ) {
+;   printf("res%d, ",$i); 
+; } # end of 'foreach $i...'
+  res0
+  };
+}
+
+// data gate
+property data_gate fusion2.multRshift16.vv {src1, src2, src3}
+
+imap fusion2.multRshift16.case1 {out vector32 des, in vector32 src1, 
+                    in vector32 src2, in vector32 src3}
+{ {}
+  {
+    fusion2.multRshift16.vv des, src1, src2, src3;
+  }
+}
+{ {vector32 prod}
+  {
+    mult16.vv prod, src1, src2;
+    rshift16.vv des, prod, src3;
+  }
+} 
+
+
+
+; } # end of 'if ($fusion)'
+

@@ -17,8 +17,8 @@ int main(int argc, char* argv[])
   // delete the existing data file
   FILE * fp = fopen("data.h", "w");
   fclose(fp);
-  const short width = 256;  // TODO change to match input image
-  const short height = 256;  // TODO change to match input image
+  const short width = 512;  // TODO change to match input image
+  const short height = 512;  // TODO change to match input image
   const short channels = 3;  // TODO change to match input image
   Image<short> special0_ref(width, height, channels, 0);
   special0_ref.load(argv[1]);  // load the input image from file
