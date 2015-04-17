@@ -45,7 +45,7 @@ all: $(TARGET)
 	$(CXX) -c $(CFLAGS) -DRTL_SIM $< -o $@
 
 # Make executables
-test: datatypes.o qdbmp.o pipeline.o test.o 
+test: datatypes.o qdbmp.o pipeline.o pipeline_ref.o test.o 
 	$(CXX) $^  $(ISS_LDFLAGS) -o $@
 
 ./%.iss: datatypes.o qdbmp.o pipeline.o ./%.o

@@ -1,15 +1,27 @@
 ; my $N = 32;
-; my $R = 32;
+; my $R = 64;
 ; my $fusion = 1;
 
 format f32 32  {slot_f32}
-slot_opcodes slot_f32 {mux16.vv
+slot_opcodes slot_f32 {
+
+; my @my_ops = ( 'add16', 'sub16', 'and16', 'or16', 'ne16', 'eq16',
+;             'gt16', 'lt16', 'gte16', 'lte16', 'lshift16', 'rshift16', 
+;             'min16', 'max16', 'mult16');
+
+; foreach $op (@my_ops) {
+; printf("            %s.vv,\n", $op); 
+; }
+	     	      mux16.vv
 ; if ($fusion) {
-	     	      ,fusion2.sum316.vv, 
-		       fusion2.clamp16.vv,
+	     	      ,fusion2.clamp16.vv,
+		       fusion2.sum316.vv, 
+		       fusion2.max316.vv, 
+		       fusion2.min316.vv, 
                        fusion2.multRshift16.vv
 ; } # end of 'if ($fusion)'
 }
+
 
 // R-entry N-way SIMD vector regfile
 ; printf("regfile vector32 %d %d v32r\n", $N*16, $R); 
@@ -299,10 +311,10 @@ property data_gate sub16.vv {src1, src2}
 ## ld/st
 ######################
 
-immediate_range my_imm8 -128 127 1
+immediate_range my_imm6 -2048 1984 64
 ctype vector32 512 512 vector32
 
-operation ldiu.vv {out vector32 vreg, inout vector32 *addr, in my_imm8 imm}
+operation ldiu.vv {out vector32 vreg, inout vector32 *addr, in my_imm6 imm}
 {out VAddr, in MemDataIn512} {
   wire [31:0] address = addr + imm;
   assign VAddr = address;
@@ -310,25 +322,9 @@ operation ldiu.vv {out vector32 vreg, inout vector32 *addr, in my_imm8 imm}
   assign addr = address;
 }
 
-operation stiu.vv {in vector32 vreg, inout vector32 *addr, in my_imm8 imm}
+operation stiu.vv {in vector32 vreg, inout vector32 *addr, in my_imm6 imm}
 {out VAddr, out MemDataOut512} {
   wire [31:0] address = addr + imm;
-  assign VAddr = address;
-  assign MemDataOut512 = vreg;
-  assign addr = address;
-}
-
-operation ldxu.vv {out vector32 vreg, inout vector32 *addr, in AR x}
-{out VAddr, in MemDataIn512} {
-  wire [31:0] address = addr + x;
-  assign VAddr = address;
-  assign vreg = MemDataIn512;
-  assign addr = address;
-}
-
-operation stxu.vv {in vector32 vreg, inout vector32 *addr, in AR x}
-{out VAddr, out MemDataOut512} {
-  wire [31:0] address = addr + x;
   assign VAddr = address;
   assign MemDataOut512 = vreg;
   assign addr = address;
@@ -339,12 +335,6 @@ proto vector32_loadiu {out vector32 v, inout vector32 *p, in immediate o} {} {
 }
 proto vector32_storeiu {in vector32 v, inout vector32 *p, in immediate o} {} {
   stiu.vv v, p, o;
-}
-proto vector32_loadxu { out vector32 v, inout vector32 *p, in int32 x} {} {
-  ldxu.vv v,p,x;
-}
-proto vector32_storexu { in vector32 v, inout vector32 *p, in int32 x} {} {
-  stxu.vv v,p,x;
 }
 
 ; if ($fusion == 1) {
@@ -489,10 +479,8 @@ imap fusion2.clamp16.vv.case4 {out vector32 des, in vector32 src1,
   }
 }
 
-
-
 ####################
-## sum
+## sum3
 ####################
 
 operation fusion2.sum316.vv {out vector32 des, in vector32 src1, 
@@ -544,6 +532,119 @@ imap fusion2.sum316.vv.case2 {out vector32 des, in vector32 src1,
     add16.vv des, sum, src3;
   }
 }
+
+
+
+
+####################
+## min3
+####################
+
+operation fusion2.min316.vv {out vector32 des, in vector32 src1, 
+                    in vector32 src2, in vector32 src3}{}
+{
+; foreach $i (0..($N-1)) {
+;   printf("  wire [15:0] min%d = func_min16(src1[%d:%d], src2[%d:%d]);\n",
+;           $i, ($i*16 + 15), ($i*16), ($i*16 + 15), ($i*16));
+
+;   printf("  wire [15:0] res%d = func_min16(min%d, src3[%d:%d]);\n",
+;           $i,  $i, ($i*16 + 15), ($i*16));
+; } # end of 'foreach $i...'
+
+  assign des = {
+; for( my $i = $N-1; $i >= 1; $i -= 1 ) {
+;   printf("res%d, ",$i); 
+; } # end of 'foreach $i...'
+  res0
+  };
+}
+
+// data gate
+property data_gate fusion2.min316.vv {src1, src2, src3}
+
+imap fusion2.min316.vv.case1 {out vector32 des, in vector32 src1, 
+                    in vector32 src2, in vector32 src3}
+{ {}
+  {
+    fusion2.min316.vv des, src1, src2, src3;
+  }
+}
+{ {vector32 min}
+  {
+    min16.vv min, src1, src2;
+    min16.vv des, src3, min;
+  }
+}
+
+imap fusion2.min316.vv.case2 {out vector32 des, in vector32 src1, 
+                    in vector32 src2, in vector32 src3}
+{ {}
+  {
+    fusion2.min316.vv des, src1, src2, src3;
+  }
+}
+{ {vector32 min}
+  {
+    min16.vv min, src1, src2;
+    min16.vv des, min, src3;
+  }
+}
+
+
+####################
+## max3
+####################
+
+operation fusion2.max316.vv {out vector32 des, in vector32 src1, 
+                    in vector32 src2, in vector32 src3}{}
+{
+; foreach $i (0..($N-1)) {
+;   printf("  wire [15:0] max%d = func_max16(src1[%d:%d], src2[%d:%d]);\n",
+;           $i, ($i*16 + 15), ($i*16), ($i*16 + 15), ($i*16));
+
+;   printf("  wire [15:0] res%d = func_max16(max%d, src3[%d:%d]);\n",
+;           $i,  $i, ($i*16 + 15), ($i*16));
+; } # end of 'foreach $i...'
+
+  assign des = {
+; for( my $i = $N-1; $i >= 1; $i -= 1 ) {
+;   printf("res%d, ",$i); 
+; } # end of 'foreach $i...'
+  res0
+  };
+}
+
+// data gate
+property data_gate fusion2.max316.vv {src1, src2, src3}
+
+imap fusion2.max316.vv.case1 {out vector32 des, in vector32 src1, 
+                    in vector32 src2, in vector32 src3}
+{ {}
+  {
+    fusion2.max316.vv des, src1, src2, src3;
+  }
+}
+{ {vector32 max}
+  {
+    max16.vv max, src1, src2;
+    max16.vv des, src3, max;
+  }
+}
+
+imap fusion2.max316.vv.case2 {out vector32 des, in vector32 src1, 
+                    in vector32 src2, in vector32 src3}
+{ {}
+  {
+    fusion2.max316.vv des, src1, src2, src3;
+  }
+}
+{ {vector32 max}
+  {
+    max16.vv max, src1, src2;
+    max16.vv des, max, src3;
+  }
+}
+
 
 
 ####################

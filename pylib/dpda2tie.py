@@ -54,12 +54,12 @@ def write_kernel_ops(w, k, startName):
     #fix_17_0 pixel_out_pos[1:0]  # Location of Reduce pixel in output image
     #fix_17_0 centroid_pos[1:0]  # Location of Centroid in input image
     if "centroid_pos" in k.specialRegs:
-        w.writeln("int centroid_pos_0 = x;")
-    w.writeln("int centroid_pos_1 = y;")
+        w.writeln("vector32 centroid_pos_0 = mv16_sv(x);")
+        w.writeln("vector32 centroid_pos_1 = mv16_sv(y);")
 
     if "pixel_out_pos" in k.specialRegs:
-        w.writeln("int pixel_out_pos_0 = x;")
-    w.writeln("int pixel_out_pos_1 = y;")
+        w.writeln("vector32 pixel_out_pos_0 = mv16_sv(x);")
+        w.writeln("vector32 pixel_out_pos_1 = mv16_sv(y);")
 
 
     # Create a list of (name, index) tuples representing the valid (i.e., evaluated) signal
@@ -95,6 +95,8 @@ def write_kernel_ops(w, k, startName):
               w.writeln("{dtype} {dst} = sub16_vv({src});".format(dtype=dtype, dst=mangle(op.result), src=str.join(', ', mangle(op.operands))))
             elif op.name == "mult":
               w.writeln("{dtype} {dst} = mult16_vv({src});".format(dtype=dtype, dst=mangle(op.result), src=str.join(', ', mangle(op.operands))))
+            elif op.name == "div":
+              w.writeln("{dtype} {dst} = div16_vv({src});".format(dtype=dtype, dst=mangle(op.result), src=str.join(', ', mangle(op.operands))))
             elif op.name == "lshift":
               w.writeln("{dtype} {dst} = lshift16_vv({op1}, {op2});".format(dtype=dtype, dst=mangle(op.result), op1=mangle(op.operands[0]), op2=mangle(op.operands[1])))
             elif op.name == "rshift":
@@ -174,9 +176,10 @@ def write_kernel_tie(w, k, code_type):
   for tapName in k.rtapNames:
     # TODO: handle int/float; infer datatype in parser
     for indices in expand_range(k.edges[tapName].dim):
-        w.writeln("register vector32 {tap} asm(\"v32r{idx}\"); // keep in the register\n"
-                  "  {tap} = mv16_sv({tap}_s);"
-                  .format(tap=mangle((tapName, indices)), idx=reg_idx))
+        #w.writeln("const register vector32 {tap} asm(\"v32r{idx}\") = mv16_sv({tap}_s);"
+        #          .format(tap=mangle((tapName, indices)), idx=reg_idx))
+        w.writeln("const register vector32 {tap} = mv16_sv({tap}_s);"
+                  .format(tap=mangle((tapName, indices))))
         reg_idx += 1
   
   w.writeln("")
@@ -184,9 +187,10 @@ def write_kernel_tie(w, k, code_type):
   w.writeln("// Set up the constant values")
   for const in k.constants:
     # TODO: handle int/float; infer datatype in parser
-    w.writeln("register vector32 {sig} asm(\"v32r{idx}\"); // keep in the register\n"
-              "  {sig} = mv16_sv({val});"
-              .format(sig=mangle((const[0], [0])), val=const[1], idx=reg_idx))
+    #w.writeln("register vector32 {sig} asm(\"v32r{idx}\") = mv16_sv({val});"
+    #          .format(sig=mangle((const[0], [0])), val=const[1], idx=reg_idx))
+    w.writeln("const register vector32 {sig} = mv16_sv({val});"
+              .format(sig=mangle((const[0], [0])), val=const[1]))
     reg_idx += 1
   
   w.writeln("")
@@ -235,7 +239,7 @@ def write_kernel_tie(w, k, code_type):
 
   w.writeln("// declare the registers storing the stencil window")
   for indices in expand_range(k.edges[startName].dim):
-      w.writeln("register vector32 {sig};  // asm(\"v32r{idx}\");".format(
+      w.writeln("register vector32 {sig};".format(
               sig=mangle((startName, indices)), idx=reg_idx))
       reg_idx += 1
   w.writeln()
@@ -317,7 +321,8 @@ def write_kernel_tie(w, k, code_type):
   w.unindent()
   w.writeln("}")
 
-  if (new_x_offset != 0):
+  #if (new_x_offset != 0):
+  if (False):
       w.writeln("for(int x = IN_WIDTH - {offset}; x < IN_WIDTH; x++){{"
                 .format(offset=new_x_offset))
       w.indent()
@@ -654,6 +659,8 @@ if __name__ == "__main__":
   w.writeln("#include <xtensa/xt_reftb.h>")
   w.writeln()
   for k in dag.kernels.values():
+      if k.name != "calcDem_3":
+          continue
       print ("\twriting kernel {}...".format(k.name))
       write_kernel_tie(w, k, 'source')
   w.close()
