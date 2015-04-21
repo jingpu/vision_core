@@ -370,7 +370,7 @@ def parse_kernel(name, blob):
         kernel.ops[uniqueId] = op
 
       # If this is a regular operation
-      elif opcode in ['mv', 'add', 'sub', 'mult', 'div', 'inv', 'mux', 'gt', 'lt', 'clamp', 'lshift', 'rshift', 'gte', 'lte', 'and', 'or', 'eq', 'ne', 'not', 'abs']:
+      elif opcode in ['mv', 'add', 'sub', 'mult', 'div', 'inv', 'mux', 'gt', 'lt', 'clamp', 'lshift', 'rshift', 'gte', 'lte', 'and', 'or', 'eq', 'ne', 'not', 'abs', 'sum']:
         for i in range(len(tIndices)):
           sliceId = "%s_%d" % (uniqueId, i)
           target[tIndices[i]].src = sliceId
