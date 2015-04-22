@@ -3186,7 +3186,7 @@ int main(int argc, char* argv[])
   unsigned int tap_R_0 = 8; 	// TODO change in value
   signed int tap_Peak_0 = 3000; 	// TODO change in value
   signed int tap_Hyst_0 = 1000; 	// TODO change in value
-  unsigned int tap_SuppressLowPeak_0 = 0; 	// TODO change in value
+  unsigned int tap_SuppressLowPeak_0 = 1; 	// TODO change in value
   
   // Construct the pipeline of kernels
   Image<int> cropSpecial0Node_7(width, height, 3, 0);
