@@ -227,9 +227,9 @@ def write_kernel(w, k):
         elif op.name == "gte":
           w.writeln("{dtype} {dst} = {op1} >= {op2};".format(dtype=dtype, dst=mangle(op.result), op1=mangle(op.operands[0]), op2=mangle(op.operands[1])))
         elif op.name == "not":
-          w.writeln("{dtype} {dst} = ~{src};".format(dtype=dtype, dst=mangle(op.result), src=mangle(op.operands[0])))
+          w.writeln("{dtype} {dst} = !{src};".format(dtype=dtype, dst=mangle(op.result), src=mangle(op.operands[0])))
         elif op.name == "abs":
-          w.writeln("{dtype} {dst} = {src} > 0 ? {src} : -{src};".format(dtype=dtype, dst=mangle(op.result), src=mangle(op.operands[0])))
+          w.writeln("{dtype} {dst} = ({src} >= 0) ? {src} : (-{src});".format(dtype=dtype, dst=mangle(op.result), src=mangle(op.operands[0])))
         elif op.name == "inv":
           w.writeln("{dtype} {dst} = -{src};".format(dtype=dtype, dst=mangle(op.result), src=mangle(op.operands[0])))
 

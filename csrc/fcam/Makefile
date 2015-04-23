@@ -1,6 +1,6 @@
 #include ../Makefile.build
 
-TARGET = main
+TARGET = pipeline
 CXX = g++
 CFLAGS =  $(COREFLAGS) -I../lib -O -g
 
@@ -12,14 +12,12 @@ CFLAGS =  $(COREFLAGS) -I../lib -O -g
 	$(CXX) -c $(CFLAGS) $< -o $@
 
 
-$(TARGET): datatypes.o qdbmp.o pipeline_ref.o main.o
+$(TARGET): datatypes.o qdbmp.o pipeline.o
 	$(CXX) $^  -o $@
 
 
 run: $(TARGET)
-	./$(TARGET) raw_256_256_1.jjm
-
-
+	./$(TARGET) inp.jjm
 
 clean:
 	rm -f $(TARGET)

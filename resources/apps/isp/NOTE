@@ -1,0 +1,3 @@
+this might not be a good design, since it hard coded all 
+the tap values as constants. It is not interesting either,
+since we have fcam.

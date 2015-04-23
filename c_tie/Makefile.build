@@ -14,10 +14,10 @@ ISS = xt-run
 # Build Flags
 #############################
 
-TDK_DIR = ../../tie_out_sn32_f
+#TDK_DIR = ../../tie_out_sn32_f
 
 #COREFLAGS= --xtensa-system=$(XTENSA_SYSTEM) --xtensa-core=$(XTENSA_CORE) 
-COREFLAGS= --xtensa-params=$(TDK_DIR)
+#COREFLAGS= --xtensa-params=$(TDK_DIR)
 
 CFLAGS =  $(COREFLAGS) -DXT -I../lib -O3 -fno-unroll-loops \
 	-g -fexceptions -keep_min
