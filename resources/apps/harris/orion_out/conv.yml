@@ -1,0 +1,694 @@
+downCast_13_map: 
+    -   - ufix_16_0 convertToIllum_55
+        - ufix_16_0 convertToIllum_55_pp
+        - mv convertToIllum_55_pp convertToIllum_55
+scheduledIRNode_19_map: 
+    -   - ufix_8_0 special0_pp[2:0]
+        - ufix_8_0 special0[2:0]
+        - mv special0_pp special0
+scheduledIRNode_19_reduce: 
+    -   - ufix_8_0 special0_pp[0:0][0:0][2:0]
+        - ufix_8_0 cropSpecial0Node_7[2:0]
+        - mv cropSpecial0Node_7 special0_pp[0][0] #rename output
+downCast_13_reduce: 
+    -   - ufix_16_0 convertToIllum_55_pp[0:0][4:0]
+        - fix_16_0 upCast_21
+        - mv upCast_21 convertToIllum_55_pp[0][3] #cast uint16 to int16
+        - fix_16_0 tap_G1
+        - fix_16_0 convolve_1_5__54
+        - mult convolve_1_5__54 upCast_21 tap_G1
+        - fix_16_0 upCast_25
+        - mv upCast_25 convertToIllum_55_pp[0][4] #cast uint16 to int16
+        - fix_16_0 tap_G0
+        - fix_16_0 convolve_1_5__58
+        - mult convolve_1_5__58 upCast_25 tap_G0
+        - fix_16_0 upCast_22
+        - mv upCast_22 convertToIllum_55_pp[0][2] #cast uint16 to int16
+        - fix_16_0 tap_G2
+        - fix_16_0 convolve_1_5__55
+        - mult convolve_1_5__55 upCast_22 tap_G2
+        - fix_16_0 upCast_23
+        - mv upCast_23 convertToIllum_55_pp[0][0] #cast uint16 to int16
+        - fix_16_0 tap_G4
+        - fix_16_0 convolve_1_5__56
+        - mult convolve_1_5__56 upCast_23 tap_G4
+        - fix_16_0 upCast_24
+        - mv upCast_24 convertToIllum_55_pp[0][1] #cast uint16 to int16
+        - fix_16_0 tap_G3
+        - fix_16_0 convolve_1_5__57
+        - mult convolve_1_5__57 upCast_24 tap_G3
+        - fix_16_0 convolve_1_5__59_pack[4:0]
+        - fix_16_0 convolve_1_5__59
+        - mv convolve_1_5__59_pack[0] convolve_1_5__58 # repack for reduce op
+        - mv convolve_1_5__59_pack[1] convolve_1_5__54 # repack for reduce op
+        - mv convolve_1_5__59_pack[2] convolve_1_5__55 # repack for reduce op
+        - mv convolve_1_5__59_pack[3] convolve_1_5__57 # repack for reduce op
+        - mv convolve_1_5__59_pack[4] convolve_1_5__56 # repack for reduce op
+        - sum convolve_1_5__59 convolve_1_5__59_pack
+        - fix_32_0 convolve_1_5__60
+        - mv convolve_1_5__60 convolve_1_5__59 #cast int16 to int32
+        - ufix_16_0 tap_R
+        - fix_32_0 convolve_1_5__37
+        - mv convolve_1_5__37 tap_R #cast uint16 to int32
+        - fix_32_0 convolve_1_5__61
+        - rshift convolve_1_5__61 convolve_1_5__60 convolve_1_5__37
+        - fix_32_0 Wxx_13
+        - mv Wxx_13 0 #value
+        - fix_32_0 convolve_1_5__62_pack[1:0]
+        - fix_32_0 convolve_1_5__62
+        - mv convolve_1_5__62_pack[0] convolve_1_5__61 # repack for reduce op
+        - mv convolve_1_5__62_pack[1] Wxx_13 # repack for reduce op
+        - max convolve_1_5__62 convolve_1_5__62_pack
+        - fix_32_0 convolve_1_5__40
+        - mv convolve_1_5__40 255 #value
+        - fix_32_0 convolve_1_5__63_pack[1:0]
+        - fix_32_0 convolve_1_5__63
+        - mv convolve_1_5__63_pack[0] convolve_1_5__62 # repack for reduce op
+        - mv convolve_1_5__63_pack[1] convolve_1_5__40 # repack for reduce op
+        - min convolve_1_5__63 convolve_1_5__63_pack
+        - fix_16_0 convolve_1_5__64
+        - mv convolve_1_5__64 convolve_1_5__63 #cast int32 to int16
+        - ufix_8_0 downCast_20
+        - mv downCast_20 convolve_1_5__64 #cast int16 to uint8
+convertToIllum_10_cfg: 
+    PixelOut: 
+        - ufix_16_0 convertToIllum_55
+    Tap: []
+    PixelPart: 
+        - ufix_8_0 cropSpecial0Node_7_pp[2:0]
+    Centroid: 
+        - -0
+        - 0
+    Stride: 
+        - 1
+        - 1
+    InputBoundary: zero-pad
+    PixelIn: 
+        - ufix_8_0 cropSpecial0Node_7[2:0]
+    Reduce: convertToIllum_10_reduce
+    StencilOut: 
+        - 1
+        - 1
+    Map: convertToIllum_10_map
+    RTap: 
+        - ufix_16_0 tap_Green_to_Lum
+        - ufix_16_0 tap_Blue_to_Lum
+        - ufix_16_0 tap_Red_to_Lum
+        - ufix_16_0 tap_R
+    RPixelPart: 
+        - ufix_8_0 cropSpecial0Node_7_pp[0:0][0:0][2:0]
+    StencilIn: 
+        - 1
+        - 1
+    Name: convertToIllum_10_cfg
+downCast_13_cfg: 
+    PixelOut: 
+        - ufix_8_0 downCast_20
+    Tap: []
+    PixelPart: 
+        - ufix_16_0 convertToIllum_55_pp
+    Centroid: 
+        - -0
+        - 2
+    Stride: 
+        - 1
+        - 1
+    InputBoundary: zero-pad
+    PixelIn: 
+        - ufix_16_0 convertToIllum_55
+    Reduce: downCast_13_reduce
+    StencilOut: 
+        - 1
+        - 1
+    Map: downCast_13_map
+    RTap: 
+        - fix_16_0 tap_G1
+        - fix_16_0 tap_G0
+        - fix_16_0 tap_G2
+        - fix_16_0 tap_G4
+        - fix_16_0 tap_G3
+        - ufix_16_0 tap_R
+    RPixelPart: 
+        - ufix_16_0 convertToIllum_55_pp[0:0][4:0]
+    StencilIn: 
+        - 1
+        - 5
+    Name: downCast_13_cfg
+Resp_5_cfg: 
+    PixelOut: 
+        - fix_16_0 Resp_18
+    Tap: []
+    PixelPart: 
+        - ufix_8_0 downCast_38_pp
+    Centroid: 
+        - 1
+        - 1
+    Stride: 
+        - 1
+        - 1
+    InputBoundary: zero-pad
+    PixelIn: 
+        - ufix_8_0 downCast_38
+    Reduce: Resp_5_reduce
+    StencilOut: 
+        - 1
+        - 1
+    Map: Resp_5_map
+    RTap: 
+        - fix_16_0 tap_K
+    RPixelPart: 
+        - ufix_8_0 downCast_38_pp[2:0][2:0]
+    StencilIn: 
+        - 3
+        - 3
+    Name: Resp_5_cfg
+Resp_5_reduce: 
+    -   - ufix_8_0 downCast_38_pp[2:0][2:0]
+        - fix_16_0 in1_25
+        - mv in1_25 downCast_38_pp[0][2] #cast uint8 to int16
+        - fix_16_0 in1x_42
+        - inv in1x_42 in1_25
+        - fix_16_0 in1_26
+        - mv in1_26 downCast_38_pp[0][1] #cast uint8 to int16
+        - fix_32_0 in1x_43
+        - mv in1x_43 in1_26 #cast int16 to int32
+        - fix_32_0 in1x_17
+        - mv in1x_17 1 #value
+        - fix_32_0 in1x_44
+        - lshift in1x_44 in1x_43 in1x_17
+        - fix_32_0 in1x_45
+        - inv in1x_45 in1x_44
+        - fix_16_0 in1_27
+        - mv in1_27 downCast_38_pp[0][0] #cast uint8 to int16
+        - fix_16_0 in1x_46
+        - inv in1x_46 in1_27
+        - fix_16_0 in1_28
+        - mv in1_28 downCast_38_pp[2][2] #cast uint8 to int16
+        - fix_16_0 in1_29
+        - mv in1_29 downCast_38_pp[2][0] #cast uint8 to int16
+        - fix_16_0 in1_30
+        - mv in1_30 downCast_38_pp[2][1] #cast uint8 to int16
+        - fix_32_0 in1x_48
+        - mv in1x_48 in1_30 #cast int16 to int32
+        - fix_32_0 in1x_49
+        - lshift in1x_49 in1x_48 in1x_17
+        - fix_16_0 in1x_50_pack[5:0]
+        - fix_16_0 in1x_50
+        - mv in1x_50_pack[0] in1x_42 # repack for reduce op
+        - mv in1x_50_pack[1] in1x_45 # repack for reduce op
+        - mv in1x_50_pack[2] in1x_46 # repack for reduce op
+        - mv in1x_50_pack[3] in1_28 # repack for reduce op
+        - mv in1x_50_pack[4] in1x_49 # repack for reduce op
+        - mv in1x_50_pack[5] in1_29 # repack for reduce op
+        - sum in1x_50 in1x_50_pack
+        - fix_32_0 Resp_11
+        - mv Resp_11 127 #value
+        - fix_32_0 Resp_12
+        - inv Resp_12 Resp_11
+        - fix_16_0 in1x_51_pack[1:0]
+        - fix_16_0 in1x_51
+        - mv in1x_51_pack[0] in1x_50 # repack for reduce op
+        - mv in1x_51_pack[1] Resp_12 # repack for reduce op
+        - max in1x_51 in1x_51_pack
+        - fix_16_0 in1x_52_pack[1:0]
+        - fix_16_0 in1x_52
+        - mv in1x_52_pack[0] in1x_51 # repack for reduce op
+        - mv in1x_52_pack[1] Resp_11 # repack for reduce op
+        - min in1x_52 in1x_52_pack
+        - fix_16_0 in1_31
+        - mv in1_31 downCast_38_pp[1][2] #cast uint8 to int16
+        - fix_32_0 in1x_53
+        - mv in1x_53 in1_31 #cast int16 to int32
+        - fix_32_0 in1y_19
+        - lshift in1y_19 in1x_53 in1x_17
+        - fix_32_0 in1y_20
+        - inv in1y_20 in1y_19
+        - fix_16_0 in1x_47
+        - inv in1x_47 in1_28
+        - fix_16_0 in1_32
+        - mv in1_32 downCast_38_pp[1][0] #cast uint8 to int16
+        - fix_32_0 in1x_54
+        - mv in1x_54 in1_32 #cast int16 to int32
+        - fix_32_0 in1y_21
+        - lshift in1y_21 in1x_54 in1x_17
+        - fix_16_0 in1y_22_pack[5:0]
+        - fix_16_0 in1y_22
+        - mv in1y_22_pack[0] in1x_42 # repack for reduce op
+        - mv in1y_22_pack[1] in1y_20 # repack for reduce op
+        - mv in1y_22_pack[2] in1x_47 # repack for reduce op
+        - mv in1y_22_pack[3] in1_27 # repack for reduce op
+        - mv in1y_22_pack[4] in1y_21 # repack for reduce op
+        - mv in1y_22_pack[5] in1_29 # repack for reduce op
+        - sum in1y_22 in1y_22_pack
+        - fix_16_0 in1y_23_pack[1:0]
+        - fix_16_0 in1y_23
+        - mv in1y_23_pack[0] in1y_22 # repack for reduce op
+        - mv in1y_23_pack[1] Resp_12 # repack for reduce op
+        - max in1y_23 in1y_23_pack
+        - fix_16_0 in1y_24_pack[1:0]
+        - fix_16_0 in1y_24
+        - mv in1y_24_pack[0] in1y_23 # repack for reduce op
+        - mv in1y_24_pack[1] Resp_11 # repack for reduce op
+        - min in1y_24 in1y_24_pack
+        - fix_16_0 sobel_3[1:0]
+        - mv sobel_3[0] in1x_52 # repack for array
+        - mv sobel_3[1] in1y_24 # repack for array
+        - fix_16_0 Wxx_30
+        - mv Wxx_30 sobel_3[0] #index
+        - fix_16_0 Wxx_31
+        - mult Wxx_31 Wxx_30 Wxx_30
+        - fix_32_0 Wxx_32
+        - mv Wxx_32 Wxx_31 #cast int16 to int32
+        - fix_32_0 Wxx_18
+        - mv Wxx_18 8 #value
+        - fix_32_0 Wxx_33
+        - rshift Wxx_33 Wxx_32 Wxx_18
+        - fix_32_0 Wxx_34_pack[1:0]
+        - fix_32_0 Wxx_34
+        - mv Wxx_34_pack[0] Wxx_33 # repack for reduce op
+        - mv Wxx_34_pack[1] Resp_12 # repack for reduce op
+        - max Wxx_34 Wxx_34_pack
+        - fix_32_0 Wxx_35_pack[1:0]
+        - fix_32_0 Wxx_35
+        - mv Wxx_35_pack[0] Wxx_34 # repack for reduce op
+        - mv Wxx_35_pack[1] Resp_11 # repack for reduce op
+        - min Wxx_35 Wxx_35_pack
+        - fix_16_0 Wxx_36
+        - mv Wxx_36 Wxx_35 #cast int32 to int16
+        - fix_16_0 Wyy_21
+        - mv Wyy_21 sobel_3[1] #index
+        - fix_16_0 Wyy_22
+        - mult Wyy_22 Wyy_21 Wyy_21
+        - fix_32_0 Wyy_23
+        - mv Wyy_23 Wyy_22 #cast int16 to int32
+        - fix_32_0 Wyy_24
+        - rshift Wyy_24 Wyy_23 Wxx_18
+        - fix_32_0 Wyy_25_pack[1:0]
+        - fix_32_0 Wyy_25
+        - mv Wyy_25_pack[0] Wyy_24 # repack for reduce op
+        - mv Wyy_25_pack[1] Resp_12 # repack for reduce op
+        - max Wyy_25 Wyy_25_pack
+        - fix_32_0 Wyy_26_pack[1:0]
+        - fix_32_0 Wyy_26
+        - mv Wyy_26_pack[0] Wyy_25 # repack for reduce op
+        - mv Wyy_26_pack[1] Resp_11 # repack for reduce op
+        - min Wyy_26 Wyy_26_pack
+        - fix_16_0 Wyy_27
+        - mv Wyy_27 Wyy_26 #cast int32 to int16
+        - fix_16_0 Det_25
+        - mult Det_25 Wxx_36 Wyy_27
+        - fix_32_0 Det_26
+        - mv Det_26 Det_25 #cast int16 to int32
+        - fix_32_0 Det_27
+        - rshift Det_27 Det_26 in1x_17
+        - fix_16_0 Wxy_19
+        - mult Wxy_19 Wxx_30 Wyy_21
+        - fix_32_0 Wxy_20
+        - mv Wxy_20 Wxy_19 #cast int16 to int32
+        - fix_32_0 Wxy_21
+        - rshift Wxy_21 Wxy_20 Wxx_18
+        - fix_32_0 Wxy_22_pack[1:0]
+        - fix_32_0 Wxy_22
+        - mv Wxy_22_pack[0] Wxy_21 # repack for reduce op
+        - mv Wxy_22_pack[1] Resp_12 # repack for reduce op
+        - max Wxy_22 Wxy_22_pack
+        - fix_32_0 Wxy_23_pack[1:0]
+        - fix_32_0 Wxy_23
+        - mv Wxy_23_pack[0] Wxy_22 # repack for reduce op
+        - mv Wxy_23_pack[1] Resp_11 # repack for reduce op
+        - min Wxy_23 Wxy_23_pack
+        - fix_16_0 Wxy_24
+        - mv Wxy_24 Wxy_23 #cast int32 to int16
+        - fix_16_0 Det_28
+        - mult Det_28 Wxy_24 Wxy_24
+        - fix_32_0 Det_29
+        - mv Det_29 Det_28 #cast int16 to int32
+        - fix_32_0 Det_30
+        - rshift Det_30 Det_29 in1x_17
+        - fix_32_0 Det_31
+        - sub Det_31 Det_27 Det_30
+        - fix_16_0 Det_32
+        - mv Det_32 Det_31 #cast int32 to int16
+        - fix_16_0 tap_K
+        - fix_16_0 TrSq_21
+        - add TrSq_21 Wxx_36 Wyy_27
+        - fix_32_0 TrSq_22
+        - mv TrSq_22 TrSq_21 #cast int16 to int32
+        - fix_32_0 TrSq_23
+        - rshift TrSq_23 TrSq_22 in1x_17
+        - fix_32_0 TrSq_24
+        - mult TrSq_24 TrSq_23 TrSq_23
+        - fix_32_0 TrSq_12
+        - mv TrSq_12 7 #value
+        - fix_32_0 TrSq_25
+        - rshift TrSq_25 TrSq_24 TrSq_12
+        - fix_16_0 TrSq_26
+        - mv TrSq_26 TrSq_25 #cast int32 to int16
+        - fix_16_0 Resp1_7
+        - mult Resp1_7 tap_K TrSq_26
+        - fix_16_0 Resp1_8
+        - sub Resp1_8 Det_32 Resp1_7
+        - fix_16_0 Resp_17_pack[1:0]
+        - fix_16_0 Resp_17
+        - mv Resp_17_pack[0] Resp1_8 # repack for reduce op
+        - mv Resp_17_pack[1] Resp_12 # repack for reduce op
+        - max Resp_17 Resp_17_pack
+        - fix_16_0 Resp_18_pack[1:0]
+        - fix_16_0 Resp_18
+        - mv Resp_18_pack[0] Resp_17 # repack for reduce op
+        - mv Resp_18_pack[1] Resp_11 # repack for reduce op
+        - min Resp_18 Resp_18_pack
+convertToIllum_10_reduce: 
+    -   - ufix_8_0 cropSpecial0Node_7_pp[0:0][0:0][2:0]
+        - ufix_8_0 convertToIllum_43
+        - mv convertToIllum_43 cropSpecial0Node_7_pp[0][0][1] #index
+        - ufix_16_0 convertToIllum_44
+        - mv convertToIllum_44 convertToIllum_43 #cast uint8 to uint16
+        - ufix_16_0 tap_Green_to_Lum
+        - ufix_16_0 convertToIllum_45
+        - mult convertToIllum_45 convertToIllum_44 tap_Green_to_Lum
+        - ufix_8_0 convertToIllum_46
+        - mv convertToIllum_46 cropSpecial0Node_7_pp[0][0][2] #index
+        - ufix_16_0 convertToIllum_47
+        - mv convertToIllum_47 convertToIllum_46 #cast uint8 to uint16
+        - ufix_16_0 tap_Blue_to_Lum
+        - ufix_16_0 convertToIllum_48
+        - mult convertToIllum_48 convertToIllum_47 tap_Blue_to_Lum
+        - ufix_8_0 convertToIllum_49
+        - mv convertToIllum_49 cropSpecial0Node_7_pp[0][0][0] #index
+        - ufix_16_0 convertToIllum_50
+        - mv convertToIllum_50 convertToIllum_49 #cast uint8 to uint16
+        - ufix_16_0 tap_Red_to_Lum
+        - ufix_16_0 convertToIllum_51
+        - mult convertToIllum_51 convertToIllum_50 tap_Red_to_Lum
+        - ufix_16_0 convertToIllum_52_pack[2:0]
+        - ufix_16_0 convertToIllum_52
+        - mv convertToIllum_52_pack[0] convertToIllum_51 # repack for reduce op
+        - mv convertToIllum_52_pack[1] convertToIllum_45 # repack for reduce op
+        - mv convertToIllum_52_pack[2] convertToIllum_48 # repack for reduce op
+        - sum convertToIllum_52 convertToIllum_52_pack
+        - ufix_16_0 tap_R
+        - ufix_16_0 convertToIllum_53
+        - rshift convertToIllum_53 convertToIllum_52 tap_R
+        - fix_32_0 Wxx_12
+        - mv Wxx_12 0 #value
+        - ufix_16_0 convertToIllum_54_pack[1:0]
+        - ufix_16_0 convertToIllum_54
+        - mv convertToIllum_54_pack[0] convertToIllum_53 # repack for reduce op
+        - mv convertToIllum_54_pack[1] Wxx_12 # repack for reduce op
+        - max convertToIllum_54 convertToIllum_54_pack
+        - fix_32_0 convolve_1_5__29
+        - mv convolve_1_5__29 255 #value
+        - ufix_16_0 convertToIllum_55_pack[1:0]
+        - ufix_16_0 convertToIllum_55
+        - mv convertToIllum_55_pack[0] convertToIllum_54 # repack for reduce op
+        - mv convertToIllum_55_pack[1] convolve_1_5__29 # repack for reduce op
+        - min convertToIllum_55 convertToIllum_55_pack
+NMS_10_reduce: 
+    -   - fix_32_0 Wxx_37
+        - mv Wxx_37 0 #value
+        - fix_16_0 Resp_18_pp[2:0][2:0]
+        - fix_16_0 tap_Peak
+        - bool P_4
+        - gt P_4 Resp_18_pp[1][1] tap_Peak
+        - bool PW_4
+        - gte PW_4 Resp_18_pp[1][1] Resp_18_pp[0][1]
+        - bool Pk_13
+        - and Pk_13 P_4 PW_4
+        - bool PE_4
+        - gt PE_4 Resp_18_pp[1][1] Resp_18_pp[2][1]
+        - bool Pk_14
+        - and Pk_14 Pk_13 PE_4
+        - bool PS_4
+        - gte PS_4 Resp_18_pp[1][1] Resp_18_pp[1][0]
+        - bool Pk_15
+        - and Pk_15 Pk_14 PS_4
+        - bool PN_4
+        - gt PN_4 Resp_18_pp[1][1] Resp_18_pp[1][2]
+        - bool Pk_16
+        - and Pk_16 Pk_15 PN_4
+        - fix_32_0 convolve_1_5__100
+        - mv convolve_1_5__100 255 #value
+        - fix_32_0 NMS_8
+        - mux NMS_8 Pk_16 convolve_1_5__100 Wxx_37
+        - ufix_8_0 NMS_9
+        - mv NMS_9 NMS_8 #cast int32 to uint8
+NMS_10_map: 
+    -   - fix_16_0 Resp_18
+        - fix_16_0 Resp_18_pp
+        - mv Resp_18_pp Resp_18
+downCast_15_cfg: 
+    PixelOut: 
+        - ufix_8_0 downCast_38
+    Tap: []
+    PixelPart: 
+        - ufix_8_0 downCast_20_pp
+    Centroid: 
+        - 2
+        - 0
+    Stride: 
+        - 1
+        - 1
+    InputBoundary: zero-pad
+    PixelIn: 
+        - ufix_8_0 downCast_20
+    Reduce: downCast_15_reduce
+    StencilOut: 
+        - 1
+        - 1
+    Map: downCast_15_map
+    RTap: 
+        - fix_16_0 tap_G1
+        - fix_16_0 tap_G0
+        - fix_16_0 tap_G2
+        - fix_16_0 tap_G4
+        - fix_16_0 tap_G3
+        - ufix_16_0 tap_R
+    RPixelPart: 
+        - ufix_8_0 downCast_20_pp[4:0][0:0]
+    StencilIn: 
+        - 5
+        - 1
+    Name: downCast_15_cfg
+convertToIllum_10_map: 
+    -   - ufix_8_0 cropSpecial0Node_7[2:0]
+        - ufix_8_0 cropSpecial0Node_7_pp[2:0]
+        - mv cropSpecial0Node_7_pp cropSpecial0Node_7
+scheduledIRNode_19_cfg: 
+    PixelOut: 
+        - ufix_8_0 cropSpecial0Node_7[2:0]
+    Tap: []
+    PixelPart: 
+        - ufix_8_0 special0_pp[2:0]
+    Centroid: 
+        - -0
+        - 0
+    Stride: 
+        - 1
+        - 1
+    InputBoundary: zero-pad
+    PixelIn: 
+        - ufix_8_0 special0[2:0]
+    Reduce: scheduledIRNode_19_reduce
+    StencilOut: 
+        - 1
+        - 1
+    Map: scheduledIRNode_19_map
+    RTap: []
+    RPixelPart: 
+        - ufix_8_0 special0_pp[0:0][0:0][2:0]
+    StencilIn: 
+        - 1
+        - 1
+    Name: scheduledIRNode_19_cfg
+top: 
+    Resp_5: 
+        PixelIn: 
+            - downCast_38
+        RunTimeResize: 0
+        IfcCtl: 0
+        PixelOut: 
+            - Resp_18
+        MaximumTileSize: 
+            - 256
+            - 256
+        MaximumDomainSize: 
+            - 256
+            - 256
+        Config: Resp_5_cfg
+    NMS_10: 
+        PixelIn: 
+            - Resp_18
+        RunTimeResize: 0
+        IfcCtl: 0
+        PixelOut: 
+            - NMS_9
+        MaximumTileSize: 
+            - 256
+            - 256
+        MaximumDomainSize: 
+            - 256
+            - 256
+        Config: NMS_10_cfg
+    MaximumTileSize: 
+        - 256
+        - 256
+    convertToIllum_10: 
+        PixelIn: 
+            - cropSpecial0Node_7
+        RunTimeResize: 0
+        IfcCtl: 0
+        PixelOut: 
+            - convertToIllum_55
+        MaximumTileSize: 
+            - 256
+            - 256
+        MaximumDomainSize: 
+            - 256
+            - 256
+        Config: convertToIllum_10_cfg
+    output_image: 
+        - NMS_9
+    downCast_13: 
+        PixelIn: 
+            - convertToIllum_55
+        RunTimeResize: 0
+        IfcCtl: 0
+        PixelOut: 
+            - downCast_20
+        MaximumTileSize: 
+            - 256
+            - 256
+        MaximumDomainSize: 
+            - 256
+            - 256
+        Config: downCast_13_cfg
+    scheduledIRNode_19: 
+        PixelIn: 
+            - special0
+        RunTimeResize: 0
+        IfcCtl: 0
+        PixelOut: 
+            - cropSpecial0Node_7
+        MaximumTileSize: 
+            - 256
+            - 256
+        MaximumDomainSize: 
+            - 256
+            - 256
+        Config: scheduledIRNode_19_cfg
+    input_image: 
+        - special0
+    MaximumDomainSize: 
+        - 256
+        - 256
+    downCast_15: 
+        PixelIn: 
+            - downCast_20
+        RunTimeResize: 0
+        IfcCtl: 0
+        PixelOut: 
+            - downCast_38
+        MaximumTileSize: 
+            - 256
+            - 256
+        MaximumDomainSize: 
+            - 256
+            - 256
+        Config: downCast_15_cfg
+NMS_10_cfg: 
+    PixelOut: 
+        - ufix_8_0 NMS_9
+    Tap: []
+    PixelPart: 
+        - fix_16_0 Resp_18_pp
+    Centroid: 
+        - 1
+        - 1
+    Stride: 
+        - 1
+        - 1
+    InputBoundary: zero-pad
+    PixelIn: 
+        - fix_16_0 Resp_18
+    Reduce: NMS_10_reduce
+    StencilOut: 
+        - 1
+        - 1
+    Map: NMS_10_map
+    RTap: 
+        - fix_16_0 tap_Peak
+    RPixelPart: 
+        - fix_16_0 Resp_18_pp[2:0][2:0]
+    StencilIn: 
+        - 3
+        - 3
+    Name: NMS_10_cfg
+downCast_15_map: 
+    -   - ufix_8_0 downCast_20
+        - ufix_8_0 downCast_20_pp
+        - mv downCast_20_pp downCast_20
+downCast_15_reduce: 
+    -   - ufix_8_0 downCast_20_pp[4:0][0:0]
+        - fix_16_0 upCast_36
+        - mv upCast_36 downCast_20_pp[1][0] #cast uint8 to int16
+        - fix_16_0 tap_G1
+        - fix_16_0 convolve_1_5__89
+        - mult convolve_1_5__89 upCast_36 tap_G1
+        - fix_16_0 upCast_40
+        - mv upCast_40 downCast_20_pp[0][0] #cast uint8 to int16
+        - fix_16_0 tap_G0
+        - fix_16_0 convolve_1_5__93
+        - mult convolve_1_5__93 upCast_40 tap_G0
+        - fix_16_0 upCast_37
+        - mv upCast_37 downCast_20_pp[2][0] #cast uint8 to int16
+        - fix_16_0 tap_G2
+        - fix_16_0 convolve_1_5__90
+        - mult convolve_1_5__90 upCast_37 tap_G2
+        - fix_16_0 upCast_38
+        - mv upCast_38 downCast_20_pp[4][0] #cast uint8 to int16
+        - fix_16_0 tap_G4
+        - fix_16_0 convolve_1_5__91
+        - mult convolve_1_5__91 upCast_38 tap_G4
+        - fix_16_0 upCast_39
+        - mv upCast_39 downCast_20_pp[3][0] #cast uint8 to int16
+        - fix_16_0 tap_G3
+        - fix_16_0 convolve_1_5__92
+        - mult convolve_1_5__92 upCast_39 tap_G3
+        - fix_16_0 convolve_1_5__94_pack[4:0]
+        - fix_16_0 convolve_1_5__94
+        - mv convolve_1_5__94_pack[0] convolve_1_5__93 # repack for reduce op
+        - mv convolve_1_5__94_pack[1] convolve_1_5__89 # repack for reduce op
+        - mv convolve_1_5__94_pack[2] convolve_1_5__90 # repack for reduce op
+        - mv convolve_1_5__94_pack[3] convolve_1_5__92 # repack for reduce op
+        - mv convolve_1_5__94_pack[4] convolve_1_5__91 # repack for reduce op
+        - sum convolve_1_5__94 convolve_1_5__94_pack
+        - fix_32_0 convolve_1_5__95
+        - mv convolve_1_5__95 convolve_1_5__94 #cast int16 to int32
+        - ufix_16_0 tap_R
+        - fix_32_0 convolve_1_5__72
+        - mv convolve_1_5__72 tap_R #cast uint16 to int32
+        - fix_32_0 convolve_1_5__96
+        - rshift convolve_1_5__96 convolve_1_5__95 convolve_1_5__72
+        - fix_32_0 Wxx_14
+        - mv Wxx_14 0 #value
+        - fix_32_0 convolve_1_5__97_pack[1:0]
+        - fix_32_0 convolve_1_5__97
+        - mv convolve_1_5__97_pack[0] convolve_1_5__96 # repack for reduce op
+        - mv convolve_1_5__97_pack[1] Wxx_14 # repack for reduce op
+        - max convolve_1_5__97 convolve_1_5__97_pack
+        - fix_32_0 convolve_1_5__75
+        - mv convolve_1_5__75 255 #value
+        - fix_32_0 convolve_1_5__98_pack[1:0]
+        - fix_32_0 convolve_1_5__98
+        - mv convolve_1_5__98_pack[0] convolve_1_5__97 # repack for reduce op
+        - mv convolve_1_5__98_pack[1] convolve_1_5__75 # repack for reduce op
+        - min convolve_1_5__98 convolve_1_5__98_pack
+        - fix_16_0 convolve_1_5__99
+        - mv convolve_1_5__99 convolve_1_5__98 #cast int32 to int16
+        - ufix_8_0 downCast_38
+        - mv downCast_38 convolve_1_5__99 #cast int16 to uint8
+Resp_5_map: 
+    -   - ufix_8_0 downCast_38
+        - ufix_8_0 downCast_38_pp
+        - mv downCast_38_pp downCast_38
