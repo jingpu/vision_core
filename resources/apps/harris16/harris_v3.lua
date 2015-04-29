@@ -1,5 +1,3 @@
-
-
 import "orion"
 require "os"
 
@@ -140,4 +138,3 @@ end
 
 
 buildRun(  harris(sensor) , opts["i"]  )
---buildRunJJM_Flip( harris(sensor) , sensor )
