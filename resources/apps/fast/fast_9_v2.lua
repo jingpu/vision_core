@@ -102,7 +102,7 @@ end
 
 function fast9(in1)
 
-   local I  = { 54 , 183 , 18 } 
+   local I  = { 27 , 91 , 9 } 
    local K1 =  16
    local K2 = -16
 

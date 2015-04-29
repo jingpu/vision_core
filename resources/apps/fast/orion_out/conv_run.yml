@@ -4,11 +4,11 @@ test_top:
     bindings: 
         lambda_ast_9_v2lua_line101_11: /horowitz/users/jhegarty/Stanford-SEEC-Convolution-Engine/orion/tests/../../images/lenna_512x512.bmp
     taps: 
-        tap_Red_to_Lum_lambda_ast_9_v2lua_line35_10: 54
+        tap_Red_to_Lum_lambda_ast_9_v2lua_line35_10: 27
         tap_DarkBlob_lambda_ast_9_v2lua_line101_10: 16
-        tap_Green_to_Lum_lambda_ast_9_v2lua_line35_10: 183
+        tap_Green_to_Lum_lambda_ast_9_v2lua_line35_10: 91
         tap_LightBlob_lambda_ast_9_v2lua_line101_10: -16
-        tap_Blue_to_Lum_lambda_ast_9_v2lua_line35_10: 18
+        tap_Blue_to_Lum_lambda_ast_9_v2lua_line35_10: 9
     bindings: 
         DEFAULT: orion_out/out.bmp
     inputImages: 

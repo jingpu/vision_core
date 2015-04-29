@@ -1,132 +1,132 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "image.h"
-void lambda_ast_9_v2lua_line101_10(const Image<int>& in, Image<int>& out
-	, signed int tap_DarkBlob_0
-	, signed int tap_LightBlob_0
+void lambda_ast_9_v2lua_line101_10(const Image<short>& in, Image<short>& out
+	, signed short tap_DarkBlob_0
+	, signed short tap_LightBlob_0
 )
 {
-  for(int y = 0; y < in.height(); y++){
-    for(int x = 0; x < in.width(); x++){
-      signed int in1_43_pp_6_6 = in(x+3, y+3, 0);
-      signed int in1_43_pp_6_5 = in(x+3, y+2, 0);
-      signed int in1_43_pp_6_4 = in(x+3, y+1, 0);
-      signed int in1_43_pp_6_3 = in(x+3, y+0, 0);
-      signed int in1_43_pp_6_2 = in(x+3, y+-1, 0);
-      signed int in1_43_pp_6_1 = in(x+3, y+-2, 0);
-      signed int in1_43_pp_6_0 = in(x+3, y+-3, 0);
-      signed int in1_43_pp_5_6 = in(x+2, y+3, 0);
-      signed int in1_43_pp_5_5 = in(x+2, y+2, 0);
-      signed int in1_43_pp_5_4 = in(x+2, y+1, 0);
-      signed int in1_43_pp_5_3 = in(x+2, y+0, 0);
-      signed int in1_43_pp_5_2 = in(x+2, y+-1, 0);
-      signed int in1_43_pp_5_1 = in(x+2, y+-2, 0);
-      signed int in1_43_pp_5_0 = in(x+2, y+-3, 0);
-      signed int in1_43_pp_4_6 = in(x+1, y+3, 0);
-      signed int in1_43_pp_4_5 = in(x+1, y+2, 0);
-      signed int in1_43_pp_4_4 = in(x+1, y+1, 0);
-      signed int in1_43_pp_4_3 = in(x+1, y+0, 0);
-      signed int in1_43_pp_4_2 = in(x+1, y+-1, 0);
-      signed int in1_43_pp_4_1 = in(x+1, y+-2, 0);
-      signed int in1_43_pp_4_0 = in(x+1, y+-3, 0);
-      signed int in1_43_pp_3_6 = in(x+0, y+3, 0);
-      signed int in1_43_pp_3_5 = in(x+0, y+2, 0);
-      signed int in1_43_pp_3_4 = in(x+0, y+1, 0);
-      signed int in1_43_pp_3_3 = in(x+0, y+0, 0);
-      signed int in1_43_pp_3_2 = in(x+0, y+-1, 0);
-      signed int in1_43_pp_3_1 = in(x+0, y+-2, 0);
-      signed int in1_43_pp_3_0 = in(x+0, y+-3, 0);
-      signed int in1_43_pp_2_6 = in(x+-1, y+3, 0);
-      signed int in1_43_pp_2_5 = in(x+-1, y+2, 0);
-      signed int in1_43_pp_2_4 = in(x+-1, y+1, 0);
-      signed int in1_43_pp_2_3 = in(x+-1, y+0, 0);
-      signed int in1_43_pp_2_2 = in(x+-1, y+-1, 0);
-      signed int in1_43_pp_2_1 = in(x+-1, y+-2, 0);
-      signed int in1_43_pp_2_0 = in(x+-1, y+-3, 0);
-      signed int in1_43_pp_1_6 = in(x+-2, y+3, 0);
-      signed int in1_43_pp_1_5 = in(x+-2, y+2, 0);
-      signed int in1_43_pp_1_4 = in(x+-2, y+1, 0);
-      signed int in1_43_pp_1_3 = in(x+-2, y+0, 0);
-      signed int in1_43_pp_1_2 = in(x+-2, y+-1, 0);
-      signed int in1_43_pp_1_1 = in(x+-2, y+-2, 0);
-      signed int in1_43_pp_1_0 = in(x+-2, y+-3, 0);
-      signed int in1_43_pp_0_6 = in(x+-3, y+3, 0);
-      signed int in1_43_pp_0_5 = in(x+-3, y+2, 0);
-      signed int in1_43_pp_0_4 = in(x+-3, y+1, 0);
-      signed int in1_43_pp_0_3 = in(x+-3, y+0, 0);
-      signed int in1_43_pp_0_2 = in(x+-3, y+-1, 0);
-      signed int in1_43_pp_0_1 = in(x+-3, y+-2, 0);
-      signed int in1_43_pp_0_0 = in(x+-3, y+-3, 0);
+  for(short y = 0; y < in.height(); y++){
+    for(short x = 0; x < in.width(); x++){
+      signed short in1_43_pp_6_6 = in(x+3, y+3, 0);
+      signed short in1_43_pp_6_5 = in(x+3, y+2, 0);
+      signed short in1_43_pp_6_4 = in(x+3, y+1, 0);
+      signed short in1_43_pp_6_3 = in(x+3, y+0, 0);
+      signed short in1_43_pp_6_2 = in(x+3, y+-1, 0);
+      signed short in1_43_pp_6_1 = in(x+3, y+-2, 0);
+      signed short in1_43_pp_6_0 = in(x+3, y+-3, 0);
+      signed short in1_43_pp_5_6 = in(x+2, y+3, 0);
+      signed short in1_43_pp_5_5 = in(x+2, y+2, 0);
+      signed short in1_43_pp_5_4 = in(x+2, y+1, 0);
+      signed short in1_43_pp_5_3 = in(x+2, y+0, 0);
+      signed short in1_43_pp_5_2 = in(x+2, y+-1, 0);
+      signed short in1_43_pp_5_1 = in(x+2, y+-2, 0);
+      signed short in1_43_pp_5_0 = in(x+2, y+-3, 0);
+      signed short in1_43_pp_4_6 = in(x+1, y+3, 0);
+      signed short in1_43_pp_4_5 = in(x+1, y+2, 0);
+      signed short in1_43_pp_4_4 = in(x+1, y+1, 0);
+      signed short in1_43_pp_4_3 = in(x+1, y+0, 0);
+      signed short in1_43_pp_4_2 = in(x+1, y+-1, 0);
+      signed short in1_43_pp_4_1 = in(x+1, y+-2, 0);
+      signed short in1_43_pp_4_0 = in(x+1, y+-3, 0);
+      signed short in1_43_pp_3_6 = in(x+0, y+3, 0);
+      signed short in1_43_pp_3_5 = in(x+0, y+2, 0);
+      signed short in1_43_pp_3_4 = in(x+0, y+1, 0);
+      signed short in1_43_pp_3_3 = in(x+0, y+0, 0);
+      signed short in1_43_pp_3_2 = in(x+0, y+-1, 0);
+      signed short in1_43_pp_3_1 = in(x+0, y+-2, 0);
+      signed short in1_43_pp_3_0 = in(x+0, y+-3, 0);
+      signed short in1_43_pp_2_6 = in(x+-1, y+3, 0);
+      signed short in1_43_pp_2_5 = in(x+-1, y+2, 0);
+      signed short in1_43_pp_2_4 = in(x+-1, y+1, 0);
+      signed short in1_43_pp_2_3 = in(x+-1, y+0, 0);
+      signed short in1_43_pp_2_2 = in(x+-1, y+-1, 0);
+      signed short in1_43_pp_2_1 = in(x+-1, y+-2, 0);
+      signed short in1_43_pp_2_0 = in(x+-1, y+-3, 0);
+      signed short in1_43_pp_1_6 = in(x+-2, y+3, 0);
+      signed short in1_43_pp_1_5 = in(x+-2, y+2, 0);
+      signed short in1_43_pp_1_4 = in(x+-2, y+1, 0);
+      signed short in1_43_pp_1_3 = in(x+-2, y+0, 0);
+      signed short in1_43_pp_1_2 = in(x+-2, y+-1, 0);
+      signed short in1_43_pp_1_1 = in(x+-2, y+-2, 0);
+      signed short in1_43_pp_1_0 = in(x+-2, y+-3, 0);
+      signed short in1_43_pp_0_6 = in(x+-3, y+3, 0);
+      signed short in1_43_pp_0_5 = in(x+-3, y+2, 0);
+      signed short in1_43_pp_0_4 = in(x+-3, y+1, 0);
+      signed short in1_43_pp_0_3 = in(x+-3, y+0, 0);
+      signed short in1_43_pp_0_2 = in(x+-3, y+-1, 0);
+      signed short in1_43_pp_0_1 = in(x+-3, y+-2, 0);
+      signed short in1_43_pp_0_0 = in(x+-3, y+-3, 0);
       const float c_0_0 = 0;
       const float c_255_0 = 255;
       
-      signed int c_3_5 = in1_43_pp_4_6;
-      signed int d_87_0 = c_3_5;
-      signed int fast_33_0 = c_0_0;
-      signed int c_3_3 = in1_43_pp_6_4;
-      signed int d_91_0 = c_3_3;
-      signed int c_3_8 = in1_43_pp_1_5;
-      signed int c_3_2 = in1_43_pp_6_3;
-      signed int d_107_0 = d_91_0 - in1_43_pp_3_3;
-      signed int d_115_3 = d_107_0;
-      signed int c_3_6 = in1_43_pp_3_6;
-      signed int d_92_0 = c_3_6;
-      signed int c_3_0 = in1_43_pp_5_1;
-      signed int d_98_0 = c_3_0;
-      signed int c_3_4 = in1_43_pp_5_5;
-      signed int d_93_0 = c_3_4;
-      signed int c_3_7 = in1_43_pp_2_6;
-      signed int d_94_0 = c_3_7;
-      signed int c_3_1 = in1_43_pp_6_2;
-      signed int c_3_15 = in1_43_pp_4_0;
-      signed int d_96_0 = c_3_15;
-      signed int d_109_0 = d_93_0 - in1_43_pp_3_3;
-      signed int d_108_0 = d_92_0 - in1_43_pp_3_3;
-      signed int d_112_0 = d_96_0 - in1_43_pp_3_3;
-      signed int d_115_6 = d_108_0;
-      signed int c_3_11 = in1_43_pp_0_2;
-      signed int d_90_0 = c_3_11;
-      signed int c_3_9 = in1_43_pp_0_4;
-      signed int d_86_0 = c_3_9;
-      signed int d_115_4 = d_109_0;
-      signed int d_103_0 = d_87_0 - in1_43_pp_3_3;
-      signed int d_115_5 = d_103_0;
-      signed int c_3_13 = in1_43_pp_2_0;
-      signed int d_84_0 = c_3_1;
-      signed int d_100_0 = d_84_0 - in1_43_pp_3_3;
-      signed int d_115_1 = d_100_0;
-      signed int c_3_14 = in1_43_pp_3_0;
-      signed int lambda_ast_9_v2lua_line101_5_0 = c_255_0;
-      signed int h_101_0 = d_115_6;
+      signed short c_3_5 = in1_43_pp_4_6;
+      signed short d_87_0 = c_3_5;
+      signed short fast_33_0 = c_0_0;
+      signed short c_3_3 = in1_43_pp_6_4;
+      signed short d_91_0 = c_3_3;
+      signed short c_3_8 = in1_43_pp_1_5;
+      signed short c_3_2 = in1_43_pp_6_3;
+      signed short d_107_0 = d_91_0 - in1_43_pp_3_3;
+      signed short d_115_3 = d_107_0;
+      signed short c_3_6 = in1_43_pp_3_6;
+      signed short d_92_0 = c_3_6;
+      signed short c_3_0 = in1_43_pp_5_1;
+      signed short d_98_0 = c_3_0;
+      signed short c_3_4 = in1_43_pp_5_5;
+      signed short d_93_0 = c_3_4;
+      signed short c_3_7 = in1_43_pp_2_6;
+      signed short d_94_0 = c_3_7;
+      signed short c_3_1 = in1_43_pp_6_2;
+      signed short c_3_15 = in1_43_pp_4_0;
+      signed short d_96_0 = c_3_15;
+      signed short d_109_0 = d_93_0 - in1_43_pp_3_3;
+      signed short d_108_0 = d_92_0 - in1_43_pp_3_3;
+      signed short d_112_0 = d_96_0 - in1_43_pp_3_3;
+      signed short d_115_6 = d_108_0;
+      signed short c_3_11 = in1_43_pp_0_2;
+      signed short d_90_0 = c_3_11;
+      signed short c_3_9 = in1_43_pp_0_4;
+      signed short d_86_0 = c_3_9;
+      signed short d_115_4 = d_109_0;
+      signed short d_103_0 = d_87_0 - in1_43_pp_3_3;
+      signed short d_115_5 = d_103_0;
+      signed short c_3_13 = in1_43_pp_2_0;
+      signed short d_84_0 = c_3_1;
+      signed short d_100_0 = d_84_0 - in1_43_pp_3_3;
+      signed short d_115_1 = d_100_0;
+      signed short c_3_14 = in1_43_pp_3_0;
+      signed short lambda_ast_9_v2lua_line101_5_0 = c_255_0;
+      signed short h_101_0 = d_115_6;
       bool h_102_0 = h_101_0 > tap_DarkBlob_0;
-      signed int c_3_12 = in1_43_pp_1_1;
-      signed int c_3_10 = in1_43_pp_0_3;
-      signed int d_97_0 = c_3_10;
-      signed int d_113_0 = d_97_0 - in1_43_pp_3_3;
-      signed int d_115_10 = d_113_0;
-      signed int h_103_0 = d_115_4;
-      signed int h_111_0 = d_115_10;
-      signed int h_99_0 = d_115_3;
-      signed int d_115_15 = d_112_0;
-      signed int d_85_0 = c_3_14;
-      signed int d_101_0 = d_85_0 - in1_43_pp_3_3;
+      signed short c_3_12 = in1_43_pp_1_1;
+      signed short c_3_10 = in1_43_pp_0_3;
+      signed short d_97_0 = c_3_10;
+      signed short d_113_0 = d_97_0 - in1_43_pp_3_3;
+      signed short d_115_10 = d_113_0;
+      signed short h_103_0 = d_115_4;
+      signed short h_111_0 = d_115_10;
+      signed short h_99_0 = d_115_3;
+      signed short d_115_15 = d_112_0;
+      signed short d_85_0 = c_3_14;
+      signed short d_101_0 = d_85_0 - in1_43_pp_3_3;
       bool h_115_6 = h_102_0;
       bool h2_2328_0 = h_115_6;
-      signed int d_106_0 = d_90_0 - in1_43_pp_3_3;
-      signed int d_115_11 = d_106_0;
-      signed int d_110_0 = d_94_0 - in1_43_pp_3_3;
-      signed int d_115_7 = d_110_0;
-      signed int d_115_14 = d_101_0;
-      signed int h_85_0 = d_115_1;
+      signed short d_106_0 = d_90_0 - in1_43_pp_3_3;
+      signed short d_115_11 = d_106_0;
+      signed short d_110_0 = d_94_0 - in1_43_pp_3_3;
+      signed short d_115_7 = d_110_0;
+      signed short d_115_14 = d_101_0;
+      signed short h_85_0 = d_115_1;
       bool l_52_0 = h_85_0 < tap_LightBlob_0;
       bool l_67_1 = l_52_0;
       bool h2_2838_0 = l_67_1;
-      signed int d_114_0 = d_98_0 - in1_43_pp_3_3;
-      signed int d_115_0 = d_114_0;
-      signed int h_113_0 = d_115_0;
+      signed short d_114_0 = d_98_0 - in1_43_pp_3_3;
+      signed short d_115_0 = d_114_0;
+      signed short h_113_0 = d_115_0;
       bool l_66_0 = h_113_0 < tap_LightBlob_0;
       bool l_67_0 = l_66_0;
-      signed int h_87_0 = d_115_14;
+      signed short h_87_0 = d_115_14;
       bool h_88_0 = h_87_0 > tap_DarkBlob_0;
       bool h_115_14 = h_88_0;
       bool h2_2329_0 = h_115_14;
@@ -137,8 +137,8 @@ void lambda_ast_9_v2lua_line101_10(const Image<int>& in, Image<int>& out
       bool h_104_0 = h_103_0 > tap_DarkBlob_0;
       bool h_115_4 = h_104_0;
       bool h2_2332_0 = h_115_4;
-      signed int d_102_0 = d_86_0 - in1_43_pp_3_3;
-      signed int d_115_9 = d_102_0;
+      signed short d_102_0 = d_86_0 - in1_43_pp_3_3;
+      signed short d_115_9 = d_102_0;
       bool h2_2339_3 = h2_2332_0;
       bool h2_2356_0 = h2_2339_3;
       bool h2_2389_2 = h2_2356_0;
@@ -175,12 +175,12 @@ void lambda_ast_9_v2lua_line101_10(const Image<int>& in, Image<int>& out
       bool h2_2520_0 = h2_2489_0;
       bool h2_2539_15 = h2_2520_0;
       bool h2_2566_0 = h2_2539_15;
-      signed int h_91_0 = d_115_5;
+      signed short h_91_0 = d_115_5;
       bool h_92_0 = h_91_0 > tap_DarkBlob_0;
       bool h_115_5 = h_92_0;
       bool h2_2334_0 = h_115_5;
       bool h2_2339_4 = h2_2334_0;
-      signed int h_105_0 = d_115_7;
+      signed short h_105_0 = d_115_7;
       bool h_106_0 = h_105_0 > tap_DarkBlob_0;
       bool h_115_7 = h_106_0;
       bool h2_2333_0 = h_115_7;
@@ -197,7 +197,7 @@ void lambda_ast_9_v2lua_line101_10(const Image<int>& in, Image<int>& out
       bool h2_2506_0 = h2_2489_3;
       bool h2_2539_2 = h2_2506_0;
       bool h2_2552_0 = h2_2539_2;
-      signed int h_109_0 = d_115_15;
+      signed short h_109_0 = d_115_15;
       bool h_110_0 = h_109_0 > tap_DarkBlob_0;
       bool h_115_15 = h_110_0;
       bool h2_2326_0 = h_115_15;
@@ -232,10 +232,10 @@ void lambda_ast_9_v2lua_line101_10(const Image<int>& in, Image<int>& out
       bool h2_2839_9 = h2_2827_0;
       bool h2_2846_0 = h2_2839_9;
       bool h2_2889_8 = h2_2846_0;
-      signed int d_83_0 = c_3_8;
-      signed int d_99_0 = d_83_0 - in1_43_pp_3_3;
-      signed int d_115_8 = d_99_0;
-      signed int h_83_0 = d_115_8;
+      signed short d_83_0 = c_3_8;
+      signed short d_99_0 = d_83_0 - in1_43_pp_3_3;
+      signed short d_115_8 = d_99_0;
+      signed short h_83_0 = d_115_8;
       bool l_51_0 = h_83_0 < tap_LightBlob_0;
       bool l_67_8 = l_51_0;
       bool h2_2823_0 = l_67_8;
@@ -254,9 +254,9 @@ void lambda_ast_9_v2lua_line101_10(const Image<int>& in, Image<int>& out
       bool h2_2639_7 = h2_2590_0;
       bool h2_2664_0 = h2_2639_7;
       bool l_64_0 = h_109_0 < tap_LightBlob_0;
-      signed int d_88_0 = c_3_13;
-      signed int d_104_0 = d_88_0 - in1_43_pp_3_3;
-      signed int d_115_13 = d_104_0;
+      signed short d_88_0 = c_3_13;
+      signed short d_104_0 = d_88_0 - in1_43_pp_3_3;
+      signed short d_115_13 = d_104_0;
       bool h2_2689_2 = h2_2656_0;
       bool h2_2702_0 = h2_2689_2;
       bool h2_2739_1 = h2_2702_0;
@@ -333,7 +333,7 @@ void lambda_ast_9_v2lua_line101_10(const Image<int>& in, Image<int>& out
       bool h2_3268_0 = h2_3239_10;
       bool h2_3289_9 = h2_3268_0;
       bool h2_3296_0 = h2_3289_9;
-      signed int d_95_0 = c_3_12;
+      signed short d_95_0 = c_3_12;
       bool h2_2989_10 = h2_2954_0;
       bool h2_3018_0 = h2_2989_10;
       bool h2_3039_9 = h2_3018_0;
@@ -348,7 +348,7 @@ void lambda_ast_9_v2lua_line101_10(const Image<int>& in, Image<int>& out
       bool h2_3248_0 = h2_3239_5;
       bool h2_3289_4 = h2_3248_0;
       bool h2_3310_0 = h2_3289_4;
-      signed int h_93_0 = d_115_13;
+      signed short h_93_0 = d_115_13;
       bool h_94_0 = h_93_0 > tap_DarkBlob_0;
       bool h_115_13 = h_94_0;
       bool h2_2335_0 = h_115_13;
@@ -401,9 +401,9 @@ void lambda_ast_9_v2lua_line101_10(const Image<int>& in, Image<int>& out
       bool h2_2760_0 = h2_2739_4;
       bool h2_2789_3 = h2_2760_0;
       bool h2_2806_0 = h2_2789_3;
-      signed int d_89_0 = c_3_2;
-      signed int d_105_0 = d_89_0 - in1_43_pp_3_3;
-      signed int d_115_2 = d_105_0;
+      signed short d_89_0 = c_3_2;
+      signed short d_105_0 = d_89_0 - in1_43_pp_3_3;
+      signed short d_115_2 = d_105_0;
       bool h2_2470_0 = h2_2439_0;
       bool h2_2489_15 = h2_2470_0;
       bool h2_2516_0 = h2_2489_15;
@@ -442,7 +442,7 @@ void lambda_ast_9_v2lua_line101_10(const Image<int>& in, Image<int>& out
       bool h2_2889_3 = h2_2860_0;
       bool h2_2906_0 = h2_2889_3;
       bool h2_2939_2 = h2_2906_0;
-      signed int h_89_0 = d_115_9;
+      signed short h_89_0 = d_115_9;
       bool h_90_0 = h_89_0 > tap_DarkBlob_0;
       bool h_115_9 = h_90_0;
       bool h2_2324_0 = h_115_9;
@@ -572,7 +572,7 @@ void lambda_ast_9_v2lua_line101_10(const Image<int>& in, Image<int>& out
       bool h2_3068_0 = h2_3039_10;
       bool h2_3089_9 = h2_3068_0;
       bool h2_3096_0 = h2_3089_9;
-      signed int h_97_0 = d_115_11;
+      signed short h_97_0 = d_115_11;
       bool h_98_0 = h_97_0 > tap_DarkBlob_0;
       bool h_115_11 = h_98_0;
       bool l_58_0 = h_97_0 < tap_LightBlob_0;
@@ -642,9 +642,9 @@ void lambda_ast_9_v2lua_line101_10(const Image<int>& in, Image<int>& out
       bool h2_2740_0 = h2_2739_8;
       bool h2_2789_7 = h2_2740_0;
       bool h2_2814_0 = h2_2789_7;
-      signed int d_111_0 = d_95_0 - in1_43_pp_3_3;
-      signed int d_115_12 = d_111_0;
-      signed int h_107_0 = d_115_12;
+      signed short d_111_0 = d_95_0 - in1_43_pp_3_3;
+      signed short d_115_12 = d_111_0;
+      signed short h_107_0 = d_115_12;
       bool h_108_0 = h_107_0 > tap_DarkBlob_0;
       bool h_115_12 = h_108_0;
       bool h2_2331_0 = h_115_12;
@@ -764,7 +764,7 @@ void lambda_ast_9_v2lua_line101_10(const Image<int>& in, Image<int>& out
       bool h2_3262_0 = h2_3239_12;
       bool h2_3289_11 = h2_3262_0;
       bool h2_3304_0 = h2_3289_11;
-      signed int h_95_0 = d_115_2;
+      signed short h_95_0 = d_115_2;
       bool h_96_0 = h_95_0 > tap_DarkBlob_0;
       bool h_115_2 = h_96_0;
       bool h2_2325_0 = h_115_2;
@@ -1869,62 +1869,62 @@ void lambda_ast_9_v2lua_line101_10(const Image<int>& in, Image<int>& out
       bool fast_218_0 = fast_216_0 | fast_217_0;
       bool fast_220_0 = fast_218_0 | fast_219_0;
       bool fast_222_0 = fast_220_0 | fast_221_0;
-      signed int lambda_ast_9_v2lua_line101_10_0 = fast_222_0 ? lambda_ast_9_v2lua_line101_5_0 : fast_33_0;
-      unsigned int lambda_ast_9_v2lua_line101_11_0 = lambda_ast_9_v2lua_line101_10_0;
+      signed short lambda_ast_9_v2lua_line101_10_0 = fast_222_0 ? lambda_ast_9_v2lua_line101_5_0 : fast_33_0;
+      unsigned short lambda_ast_9_v2lua_line101_11_0 = lambda_ast_9_v2lua_line101_10_0;
       out(x,y,0) = lambda_ast_9_v2lua_line101_11_0;
     }
   }
 } // END lambda_ast_9_v2lua_line101_10
 
 
-void lambda_ast_9_v2lua_line35_10(const Image<int>& in, Image<int>& out
-	, signed int tap_Green_to_Lum_0
-	, signed int tap_Blue_to_Lum_0
-	, signed int tap_Red_to_Lum_0
+void lambda_ast_9_v2lua_line35_10(const Image<short>& in, Image<short>& out
+	, signed short tap_Green_to_Lum_0
+	, signed short tap_Blue_to_Lum_0
+	, signed short tap_Red_to_Lum_0
 )
 {
-  for(int y = 0; y < in.height(); y++){
-    for(int x = 0; x < in.width(); x++){
-      unsigned int cropSpecial0Node_7_pp_0_0_2 = in(x+0, y+0, 2);
-      unsigned int cropSpecial0Node_7_pp_0_0_1 = in(x+0, y+0, 1);
-      unsigned int cropSpecial0Node_7_pp_0_0_0 = in(x+0, y+0, 0);
+  for(short y = 0; y < in.height(); y++){
+    for(short x = 0; x < in.width(); x++){
+      unsigned short cropSpecial0Node_7_pp_0_0_2 = in(x+0, y+0, 2);
+      unsigned short cropSpecial0Node_7_pp_0_0_1 = in(x+0, y+0, 1);
+      unsigned short cropSpecial0Node_7_pp_0_0_0 = in(x+0, y+0, 0);
       const float c_8_0 = 8;
       
-      signed int in1_33_0 = cropSpecial0Node_7_pp_0_0_0;
-      signed int in1_33_1 = cropSpecial0Node_7_pp_0_0_1;
-      signed int in1_34_0 = in1_33_1;
-      signed int h2_322_0 = c_8_0;
-      signed int in1_35_0 = in1_34_0 * tap_Green_to_Lum_0;
-      signed int in1_40_pack_1 = in1_35_0;
-      signed int in1_38_0 = in1_33_0;
-      signed int in1_39_0 = in1_38_0 * tap_Red_to_Lum_0;
-      signed int in1_40_pack_0 = in1_39_0;
-      signed int in1_33_2 = cropSpecial0Node_7_pp_0_0_2;
-      signed int in1_36_0 = in1_33_2;
-      signed int in1_37_0 = in1_36_0 * tap_Blue_to_Lum_0;
-      signed int in1_40_pack_2 = in1_37_0;
-      signed int in1_40_0 = in1_40_pack_2 + in1_40_pack_1 + in1_40_pack_0;
-      signed int in1_41_0 = in1_40_0;
-      signed int in1_42_0 = in1_41_0 >> h2_322_0;
-      signed int in1_43_0 = in1_42_0;
+      signed short in1_33_0 = cropSpecial0Node_7_pp_0_0_0;
+      signed short in1_33_1 = cropSpecial0Node_7_pp_0_0_1;
+      signed short in1_34_0 = in1_33_1;
+      signed short h2_322_0 = c_8_0;
+      signed short in1_35_0 = in1_34_0 * tap_Green_to_Lum_0;
+      signed short in1_40_pack_1 = in1_35_0;
+      signed short in1_38_0 = in1_33_0;
+      signed short in1_39_0 = in1_38_0 * tap_Red_to_Lum_0;
+      signed short in1_40_pack_0 = in1_39_0;
+      signed short in1_33_2 = cropSpecial0Node_7_pp_0_0_2;
+      signed short in1_36_0 = in1_33_2;
+      signed short in1_37_0 = in1_36_0 * tap_Blue_to_Lum_0;
+      signed short in1_40_pack_2 = in1_37_0;
+      signed short in1_40_0 = in1_40_pack_2 + in1_40_pack_1 + in1_40_pack_0;
+      signed short in1_41_0 = in1_40_0;
+      signed short in1_42_0 = in1_41_0 >> h2_322_0;
+      signed short in1_43_0 = in1_42_0;
       out(x,y,0) = in1_43_0;
     }
   }
 } // END lambda_ast_9_v2lua_line35_10
 
 
-void scheduledIRNode_19(const Image<int>& in, Image<int>& out
+void scheduledIRNode_19(const Image<short>& in, Image<short>& out
 )
 {
-  for(int y = 0; y < in.height(); y++){
-    for(int x = 0; x < in.width(); x++){
-      unsigned int special0_pp_0_0_2 = in(x+0, y+0, 2);
-      unsigned int special0_pp_0_0_1 = in(x+0, y+0, 1);
-      unsigned int special0_pp_0_0_0 = in(x+0, y+0, 0);
+  for(short y = 0; y < in.height(); y++){
+    for(short x = 0; x < in.width(); x++){
+      unsigned short special0_pp_0_0_2 = in(x+0, y+0, 2);
+      unsigned short special0_pp_0_0_1 = in(x+0, y+0, 1);
+      unsigned short special0_pp_0_0_0 = in(x+0, y+0, 0);
       
-      unsigned int cropSpecial0Node_7_0 = special0_pp_0_0_0;
-      unsigned int cropSpecial0Node_7_1 = special0_pp_0_0_1;
-      unsigned int cropSpecial0Node_7_2 = special0_pp_0_0_2;
+      unsigned short cropSpecial0Node_7_0 = special0_pp_0_0_0;
+      unsigned short cropSpecial0Node_7_1 = special0_pp_0_0_1;
+      unsigned short cropSpecial0Node_7_2 = special0_pp_0_0_2;
       out(x,y,2) = cropSpecial0Node_7_2;
       out(x,y,1) = cropSpecial0Node_7_1;
       out(x,y,0) = cropSpecial0Node_7_0;
@@ -1935,32 +1935,32 @@ void scheduledIRNode_19(const Image<int>& in, Image<int>& out
 
 int main(int argc, char* argv[])
 {
-  int width = 512;  // TODO change to match input image
-  int height = 512;  // TODO change to match input image
-  int channels = 3;  // TODO change to match input image
-  Image<int> special0(width, height, channels, 0);
+  short width = 512;  // TODO change to match input image
+  short height = 512;  // TODO change to match input image
+  short channels = 3;  // TODO change to match input image
+  Image<short> special0(width, height, channels, 0);
   special0.load(argv[1]);
   
   // Set tap values
-  unsigned int tap_Green_to_Lum_0 = 183;
-  unsigned int tap_Blue_to_Lum_0 = 18;
-  unsigned int tap_Red_to_Lum_0 = 54;
-  signed int tap_DarkBlob_0 = 16;
-  signed int tap_LightBlob_0 = -16;
+  unsigned short tap_Green_to_Lum_0 = 91;
+  unsigned short tap_Blue_to_Lum_0 = 9;
+  unsigned short tap_Red_to_Lum_0 = 27;
+  signed short tap_DarkBlob_0 = 16;
+  signed short tap_LightBlob_0 = -16;
   
   // Construct the pipeline of kernels
-  Image<int> cropSpecial0Node_7(width, height, 3, 0);
+  Image<short> cropSpecial0Node_7(width, height, 3, 0);
   scheduledIRNode_19(special0, cropSpecial0Node_7
   );
   
-  Image<int> in1_43(width, height, 1, 0);
+  Image<short> in1_43(width, height, 1, 0);
   lambda_ast_9_v2lua_line35_10(cropSpecial0Node_7, in1_43
   	, tap_Green_to_Lum_0
   	, tap_Blue_to_Lum_0
   	, tap_Red_to_Lum_0
   );
   
-  Image<int> lambda_ast_9_v2lua_line101_11(width, height, 1, 0);
+  Image<short> lambda_ast_9_v2lua_line101_11(width, height, 1, 0);
   lambda_ast_9_v2lua_line101_10(in1_43, lambda_ast_9_v2lua_line101_11
   	, tap_DarkBlob_0
   	, tap_LightBlob_0
