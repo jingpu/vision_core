@@ -1,0 +1,10 @@
+test_top: 
+    inputImages: 
+        special0: /horowitz/users/jhegarty/Stanford-SEEC-Convolution-Engine/orion/tests//horowitz/users/jingpu/nobackup/Stanford-SEEC-Convolution-Engine/HW/src-Stencil-Path/experiments/2013_12_16_SIGGRAPH/stereo_orion/stereo_inp_256.jjm
+    bindings: 
+        lambda_ctify_smlua_line53_10: /horowitz/users/jhegarty/Stanford-SEEC-Convolution-Engine/orion/tests//horowitz/users/jingpu/nobackup/Stanford-SEEC-Convolution-Engine/HW/src-Stencil-Path/experiments/2013_12_16_SIGGRAPH/stereo_orion/stereo_inp_256.jjm
+    taps: []
+    bindings: 
+        DEFAULT:  /orion_out/out.jjm
+    inputImages: 
+        special0: /orion_out/inp.jjm

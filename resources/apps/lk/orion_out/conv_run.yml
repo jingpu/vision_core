@@ -1,0 +1,10 @@
+test_top: 
+    inputImages: []
+    bindings: []
+    taps: []
+test_top:
+   inputImages: 
+      special0: orion_out/inp.jjm
+   bindings: 
+      DEFAULT: orion_out/out.jjm
+   taps: []

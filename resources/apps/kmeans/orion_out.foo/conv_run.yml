@@ -1,0 +1,6 @@
+test_top:
+   inputImages: 
+      special0: orion_out/inp.bmp
+   bindings: 
+      DEFAULT: orion_out/out.bmp
+   taps: []

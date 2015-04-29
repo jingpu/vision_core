@@ -1,0 +1,13 @@
+test_top:
+   inputImages: 
+      special0: src-Stencil-Path/experiments/2014_03_19_HierFlow/SLIC_orion/orion_out/inp.jjm
+   bindings: 
+      DEFAULT: src-Stencil-Path/experiments/2014_03_19_HierFlow/SLIC_orion/orion_out/out.jjm
+   taps: []
+test_top: 
+    inputImages: 
+        special0: /horowitz/users/jhegarty/Stanford-SEEC-Convolution-Engine/orion/tests//horowitz/users/jingpu/nobackup/Stanford-SEEC-Convolution-Engine/HW/imgs/Lenna_256.jjm
+    bindings: 
+        composite_230: /horowitz/users/jhegarty/Stanford-SEEC-Convolution-Engine/orion/tests//horowitz/users/jingpu/nobackup/Stanford-SEEC-Convolution-Engine/HW/imgs/Lenna_256.jjm
+    taps: 
+        tap_DrawEdge_composite_3: 1

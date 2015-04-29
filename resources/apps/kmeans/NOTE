@@ -1,0 +1,5 @@
+Both darkroom code works.
+kmeans_sp_3_sm.lua looks more mature.
+
+DPDA use gmux, which indexing into multi-dimentional array. DPDA also 
+uses many 3-D array of signals. The intermediate image has 10 channels.

@@ -41,7 +41,7 @@ def opOk(op, validRegs):
   have valid values.
   """
   for operand in op.operands:
-    if not operand in validRegs:
+    if not operand in reversed(validRegs):
       return False
   # If we make it here, they're all valid
   return True
