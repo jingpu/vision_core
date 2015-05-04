@@ -5,13 +5,8 @@ if not _CONVGEN then
    _CONVGEN = "/horowitz/users/jbrunhav/ConvEngine/Conv-Gen8/Stanford-SEEC-Convolution-Engine/HW"
 end
 
---_EXP = _CONVGEN .. "/src-Stencil-Path/experiments/2013_12_16_SIGGRAPH/stereo_orion"
+InpImg = "../../images/stereo_inp_256.bmp"
 
---InpImg = _CONVGEN .. "/src-Stencil-Path/experiments/2013_12_16_SIGGRAPH/stereo_orion/stereo_inp_128.jjm"
-InpImg = _CONVGEN .. "/src-Stencil-Path/experiments/2013_12_16_SIGGRAPH/stereo_orion/stereo_inp_256.jjm"
-
---local W,H = 584,388
---local W,H = 128,128
 local W,H = 256,256
 
 
