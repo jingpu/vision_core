@@ -108,6 +108,41 @@ def write_complex_op(writer, op, datatype):
 
 dtypeMap = {'float':'float', 'ufix':'unsigned int', 'fix':'signed int', 'bool':'bool'}
 
+def getCType(edge):
+  if edge.dtype == 'float':
+    return 'float'
+
+  elif edge.dtype == 'bool':
+    return 'bool'
+
+  elif edge.dtype == 'ufix' or edge.dtype == 'fix':
+    signPrefix = '';
+    baseType = '';
+    if edge.dtype == 'ufix':
+      signPrefix = 'unsigned'
+    else:
+      signPrefix = 'signed'
+
+    if edge.fracWidth != 0:
+      raise ValueError("Signal has fraction part, not supported. Edge: " + edge)
+
+    if edge.intWidth <= 8:
+      baseType = 'char'
+    elif edge.intWidth <= 16:
+      baseType = 'short'
+    elif edge.intWidth <= 32:
+      baseType = 'int'
+    else:
+      raise ValueError("Signal is longer than 32bit, not supported. Edge: " + edge)
+
+    return "{prefix} {base}".format(prefix=signPrefix, base=baseType)
+
+  else:
+    raise ValueError("Unexpected DPDA type. Edge: " + edge)
+      
+    
+
+
 def write_kernel(w, k):
   """
   Parameters are the CodeWriter object, and the kernel object (not just the name)
@@ -115,8 +150,9 @@ def write_kernel(w, k):
   w.writeln("void {k}(const Image<int>& in, Image<int>& out".format(k=k.name))
   # write the tap signal in the function argument list
   for tapName in k.rtapNames:
-    tapType = k.edges[tapName].dtype
-    tapCType = dtypeMap[tapType]
+    #tapType = k.edges[tapName].dtype
+    #tapCType = dtypeMap[tapType]
+    tapCType = getCType(k.edges[tapName])
     for indices in expand_range(k.edges[tapName].dim):
       w.writeln("\t, {type} {sig}".format(type=tapCType, sig=mangle((tapName, indices))))
   w.writeln(")")
@@ -133,8 +169,9 @@ def write_kernel(w, k):
   # Grab the register declaration for the partial-pixel output and blow it into
   # the complete list of input registers
   startName = k.ppoutName
-  startType = k.edges[startName].dtype
-  startCType = dtypeMap[startType]
+  #startType = k.edges[startName].dtype
+  #startCType = dtypeMap[startType]
+  startCType = getCType(k.edges[startName])
   for indices in expand_range(k.edges[startName].dim):
     # HACK: work with multi-channel or single-channel images
     z_idx = 0
@@ -185,8 +222,9 @@ def write_kernel(w, k):
       op = k.ops[opKey]
       # Find an operation that can be evaluated
       if opOk(op, validRegs):
-        dtype = k.edges[op.result[0]].dtype
-        dtype = dtypeMap[dtype] # Look up the C-equivalent for this type
+        #dtype = k.edges[op.result[0]].dtype
+        #dtype = dtypeMap[dtype] # Look up the C-equivalent for this type
+        dtype = getCType(k.edges[op.result[0]])
         # TODO: include integer/fraction width
   
         # TODO: error checking that we have the right number of operands - this should be done in the parser, actually
@@ -294,8 +332,9 @@ def write_main(w, dag):
     for tapName in k.rtapNames:
       if tapName not in tapSet:
         tapSet.add(tapName)
-        tapType = k.edges[tapName].dtype
-        tapType = dtypeMap[tapType]
+        #tapType = k.edges[tapName].dtype
+        #tapType = dtypeMap[tapType]
+        tapType = getCType(k.edges[tapName])
         for indices in expand_range(k.edges[tapName].dim):
           w.writeln("{type} {sig} = 0; \t// TODO change in value".format(type=tapType, sig=mangle((tapName, indices))))
 

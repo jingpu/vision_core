@@ -27,7 +27,7 @@ def write_complex_op_tie(writer, op, datatype):
         writer.writeln("// {op} {dst} <= ({src})"
                        .format(op=inst, dst=final_dst, 
                                src=str.join(' , ', mangle(op.operands))))
-        w.writeln("{dtype} {dst} = {op}16_vv({src1}, {src2});"
+        w.writeln("{dtype} {dst} = {op}_vv({src1}, {src2});"
                   .format(dtype=datatype, dst=(final_dst+'_cotmp_1'), op=inst,
                           src1=mangle(op.operands[0]), 
                           src2=mangle(op.operands[1])))
@@ -36,7 +36,7 @@ def write_complex_op_tie(writer, op, datatype):
             dst_name = final_dst + '_cotmp_' + str(i)
             src1_name = final_dst + '_cotmp_' + str(i-1)
             src2_name = mangle(op.operands[i])
-            w.writeln("{dtype} {dst} = {op}16_vv({src1}, {src2});"\
+            w.writeln("{dtype} {dst} = {op}_vv({src1}, {src2});"\
                           .format(dtype=datatype, dst=dst_name, op=inst,
                                   src1=src1_name, src2=src2_name))
     
@@ -54,12 +54,12 @@ def write_kernel_ops(w, k, startName):
     #fix_17_0 pixel_out_pos[1:0]  # Location of Reduce pixel in output image
     #fix_17_0 centroid_pos[1:0]  # Location of Centroid in input image
     if "centroid_pos" in k.specialRegs:
-        w.writeln("vector32 centroid_pos_0 = mv16_sv(x);")
-        w.writeln("vector32 centroid_pos_1 = mv16_sv(y);")
+        w.writeln("V16S centroid_pos_0 = mv_sv(x);")
+        w.writeln("V16S centroid_pos_1 = mv_sv(y);")
 
     if "pixel_out_pos" in k.specialRegs:
-        w.writeln("vector32 pixel_out_pos_0 = mv16_sv(x);")
-        w.writeln("vector32 pixel_out_pos_1 = mv16_sv(y);")
+        w.writeln("V16S pixel_out_pos_0 = mv_sv(x);")
+        w.writeln("V16S pixel_out_pos_1 = mv_sv(y);")
 
 
     # Create a list of (name, index) tuples representing the valid (i.e., evaluated) signal
@@ -81,7 +81,7 @@ def write_kernel_ops(w, k, startName):
           # Find an operation that can be evaluated
           if opOk(op, validRegs):
             dtype = k.edges[op.result[0]].dtype
-            dtype = "vector32"
+            dtype = "V16S"
             # TODO: include integer/fraction width
 
             # Evaluate it
@@ -90,44 +90,44 @@ def write_kernel_ops(w, k, startName):
             elif op.name == "mv":
               w.writeln("{dtype} {dst} = {src};".format(dtype=dtype, dst=mangle(op.result), src=mangle(op.operands[0])))
             elif op.name == "add":
-              w.writeln("{dtype} {dst} = add16_vv({src});".format(dtype=dtype, dst=mangle(op.result), src=str.join(', ', mangle(op.operands))))
+              w.writeln("{dtype} {dst} = add_vv({src});".format(dtype=dtype, dst=mangle(op.result), src=str.join(', ', mangle(op.operands))))
             elif op.name == "sub":
-              w.writeln("{dtype} {dst} = sub16_vv({src});".format(dtype=dtype, dst=mangle(op.result), src=str.join(', ', mangle(op.operands))))
+              w.writeln("{dtype} {dst} = sub_vv({src});".format(dtype=dtype, dst=mangle(op.result), src=str.join(', ', mangle(op.operands))))
             elif op.name == "mult":
-              w.writeln("{dtype} {dst} = mult16_vv({src});".format(dtype=dtype, dst=mangle(op.result), src=str.join(', ', mangle(op.operands))))
+              w.writeln("{dtype} {dst} = mult_vv({src});".format(dtype=dtype, dst=mangle(op.result), src=str.join(', ', mangle(op.operands))))
             elif op.name == "div":
-              w.writeln("{dtype} {dst} = div16_vv({src});".format(dtype=dtype, dst=mangle(op.result), src=str.join(', ', mangle(op.operands))))
+              w.writeln("{dtype} {dst} = div_vv({src});".format(dtype=dtype, dst=mangle(op.result), src=str.join(', ', mangle(op.operands))))
             elif op.name == "lshift":
-              w.writeln("{dtype} {dst} = lshift16_vv({op1}, {op2});".format(dtype=dtype, dst=mangle(op.result), op1=mangle(op.operands[0]), op2=mangle(op.operands[1])))
+              w.writeln("{dtype} {dst} = lshift_vv({op1}, {op2});".format(dtype=dtype, dst=mangle(op.result), op1=mangle(op.operands[0]), op2=mangle(op.operands[1])))
             elif op.name == "rshift":
-              w.writeln("{dtype} {dst} = rshift16_vv({op1}, {op2});".format(dtype=dtype, dst=mangle(op.result), op1=mangle(op.operands[0]), op2=mangle(op.operands[1])))
+              w.writeln("{dtype} {dst} = rshift_vv({op1}, {op2});".format(dtype=dtype, dst=mangle(op.result), op1=mangle(op.operands[0]), op2=mangle(op.operands[1])))
             elif op.name == "and":
-              w.writeln("{dtype} {dst} = and16_vv({op1}, {op2});".format(dtype=dtype, dst=mangle(op.result), op1=mangle(op.operands[0]), op2=mangle(op.operands[1])))
+              w.writeln("{dtype} {dst} = and_vv({op1}, {op2});".format(dtype=dtype, dst=mangle(op.result), op1=mangle(op.operands[0]), op2=mangle(op.operands[1])))
             elif op.name == "or":
-              w.writeln("{dtype} {dst} = or16_vv({op1}, {op2});".format(dtype=dtype, dst=mangle(op.result), op1=mangle(op.operands[0]), op2=mangle(op.operands[1])))
+              w.writeln("{dtype} {dst} = or_vv({op1}, {op2});".format(dtype=dtype, dst=mangle(op.result), op1=mangle(op.operands[0]), op2=mangle(op.operands[1])))
             elif op.name == "ne":
-              w.writeln("{dtype} {dst} = ne16_vv({op1}, {op2});".format(dtype=dtype, dst=mangle(op.result), op1=mangle(op.operands[0]), op2=mangle(op.operands[1])))
+              w.writeln("{dtype} {dst} = ne_vv({op1}, {op2});".format(dtype=dtype, dst=mangle(op.result), op1=mangle(op.operands[0]), op2=mangle(op.operands[1])))
             elif op.name == "eq":
-              w.writeln("{dtype} {dst} = eq16_vv({op1}, {op2});".format(dtype=dtype, dst=mangle(op.result), op1=mangle(op.operands[0]), op2=mangle(op.operands[1])))
+              w.writeln("{dtype} {dst} = eq_vv({op1}, {op2});".format(dtype=dtype, dst=mangle(op.result), op1=mangle(op.operands[0]), op2=mangle(op.operands[1])))
             elif op.name == "lt":
-              w.writeln("{dtype} {dst} = lt16_vv({op1}, {op2});".format(dtype=dtype, dst=mangle(op.result), op1=mangle(op.operands[0]), op2=mangle(op.operands[1])))
+              w.writeln("{dtype} {dst} = lt_vv({op1}, {op2});".format(dtype=dtype, dst=mangle(op.result), op1=mangle(op.operands[0]), op2=mangle(op.operands[1])))
             elif op.name == "lte":
-              w.writeln("{dtype} {dst} = lte16_vv({op1}, {op2});".format(dtype=dtype, dst=mangle(op.result), op1=mangle(op.operands[0]), op2=mangle(op.operands[1])))
+              w.writeln("{dtype} {dst} = lte_vv({op1}, {op2});".format(dtype=dtype, dst=mangle(op.result), op1=mangle(op.operands[0]), op2=mangle(op.operands[1])))
             elif op.name == "gt":
-              w.writeln("{dtype} {dst} = gt16_vv({op1}, {op2});".format(dtype=dtype, dst=mangle(op.result), op1=mangle(op.operands[0]), op2=mangle(op.operands[1])))
+              w.writeln("{dtype} {dst} = gt_vv({op1}, {op2});".format(dtype=dtype, dst=mangle(op.result), op1=mangle(op.operands[0]), op2=mangle(op.operands[1])))
             elif op.name == "gte":
-              w.writeln("{dtype} {dst} = gte16_vv({op1}, {op2});".format(dtype=dtype, dst=mangle(op.result), op1=mangle(op.operands[0]), op2=mangle(op.operands[1])))
+              w.writeln("{dtype} {dst} = gte_vv({op1}, {op2});".format(dtype=dtype, dst=mangle(op.result), op1=mangle(op.operands[0]), op2=mangle(op.operands[1])))
             elif op.name == "inv":
-              w.writeln("{dtype} {dst} = inv16_vv({src});".format(dtype=dtype, dst=mangle(op.result), src=mangle(op.operands[0])))
+              w.writeln("{dtype} {dst} = inv_vv({src});".format(dtype=dtype, dst=mangle(op.result), src=mangle(op.operands[0])))
 
             elif op.name == "not":
-              w.writeln("{dtype} {dst} = not16_vv({src});".format(dtype=dtype, dst=mangle(op.result), src=mangle(op.operands[0])))
+              w.writeln("{dtype} {dst} = not_vv({src});".format(dtype=dtype, dst=mangle(op.result), src=mangle(op.operands[0])))
 
             elif op.name == "abs":
-              w.writeln("{dtype} {dst} = abs16_vv({src});".format(dtype=dtype, dst=mangle(op.result), src=mangle(op.operands[0])))
+              w.writeln("{dtype} {dst} = abs_vv({src});".format(dtype=dtype, dst=mangle(op.result), src=mangle(op.operands[0])))
 
             elif op.name == "mux":
-              w.writeln("{dtype} {dst} = mux16_vv({cond}, {op1}, {op2});".format(dtype=dtype, dst=mangle(op.result), \
+              w.writeln("{dtype} {dst} = mux_vv({cond}, {op1}, {op2});".format(dtype=dtype, dst=mangle(op.result), \
                   cond=mangle(op.operands[0]), op1=mangle(op.operands[1]), op2=mangle(op.operands[2])))
             else:
               print "Unhandled operator " + opKey
@@ -150,7 +150,7 @@ def write_kernel_tie(w, k, code_type):
   """
   Parameters are the CodeWriter object, and the kernel object (not just the name)
   """
-  w.writeln("void {k}(const Image<vector32>& in, Image<vector32>& out".format(k=k.name))
+  w.writeln("void {k}(const Image<V16S>& in, Image<V16S>& out".format(k=k.name))
   # write the tap signal in the function argument list
   for tapName in k.rtapNames:
     tapType = k.edges[tapName].dtype
@@ -176,9 +176,9 @@ def write_kernel_tie(w, k, code_type):
   for tapName in k.rtapNames:
     # TODO: handle int/float; infer datatype in parser
     for indices in expand_range(k.edges[tapName].dim):
-        #w.writeln("const register vector32 {tap} asm(\"v32r{idx}\") = mv16_sv({tap}_s);"
+        #w.writeln("const register V16S {tap} asm(\"v32r{idx}\") = mv_sv({tap}_s);"
         #          .format(tap=mangle((tapName, indices)), idx=reg_idx))
-        w.writeln("const register vector32 {tap} = mv16_sv({tap}_s);"
+        w.writeln("const register V16S {tap} = mv_sv({tap}_s);"
                   .format(tap=mangle((tapName, indices))))
         reg_idx += 1
   
@@ -187,15 +187,15 @@ def write_kernel_tie(w, k, code_type):
   w.writeln("// Set up the constant values")
   for const in k.constants:
     # TODO: handle int/float; infer datatype in parser
-    #w.writeln("register vector32 {sig} asm(\"v32r{idx}\") = mv16_sv({val});"
+    #w.writeln("register V16S {sig} asm(\"v32r{idx}\") = mv_sv({val});"
     #          .format(sig=mangle((const[0], [0])), val=const[1], idx=reg_idx))
-    w.writeln("const register vector32 {sig} = mv16_sv({val});"
+    w.writeln("const register V16S {sig} = mv_sv({val});"
               .format(sig=mangle((const[0], [0])), val=const[1]))
     reg_idx += 1
   
   w.writeln("")
-  w.writeln("const vector32 *in_ptr = in.mData; // use direct access to speed up inner loop")
-  w.writeln("vector32 *out_ptr = out.mData; // use direct access to speed up inner loop")
+  w.writeln("const V16S *in_ptr = in.mData; // use direct access to speed up inner loop")
+  w.writeln("V16S *out_ptr = out.mData; // use direct access to speed up inner loop")
   w.writeln("const int IN_WIDTH = in.width();")
   w.writeln("const int IN_HEIGHT = in.height();")
 
@@ -239,7 +239,7 @@ def write_kernel_tie(w, k, code_type):
 
   w.writeln("// declare the registers storing the stencil window")
   for indices in expand_range(k.edges[startName].dim):
-      w.writeln("register vector32 {sig};".format(
+      w.writeln("register V16S {sig};".format(
               sig=mangle((startName, indices)), idx=reg_idx))
       reg_idx += 1
   w.writeln()
@@ -264,7 +264,7 @@ def write_kernel_tie(w, k, code_type):
 
           w.writeln("{sig} = in_ptr[(y+{yoff})*IN_WIDTH*IN_CHANNELS + ({x})*IN_CHANNELS + {z}];".format(sig=sigName, x=x_idx, yoff=(indices[0]-k.centroid[1]+y_base_offset), z=z_idx))
           if (x_pos < 0):
-              w.writeln("{sig} = getl16_vv({sig});".format(sig=sigName))
+              w.writeln("{sig} = getl_vv({sig});".format(sig=sigName))
 
   w.writeln("")
 
@@ -321,8 +321,8 @@ def write_kernel_tie(w, k, code_type):
   w.unindent()
   w.writeln("}")
 
-  #if (new_x_offset != 0):
-  if (False):
+  if (new_x_offset != 0):
+  #if (False):
       w.writeln("for(int x = IN_WIDTH - {offset}; x < IN_WIDTH; x++){{"
                 .format(offset=new_x_offset))
       w.indent()
@@ -356,7 +356,7 @@ def write_kernel_tie(w, k, code_type):
 
           w.writeln("{sig} = in_ptr[(y+{yoff})*IN_WIDTH*IN_CHANNELS + (x + {xoff} - IN_WIDTH)*IN_CHANNELS + {z}];".format(sig=sigName, xoff=new_x_offset, yoff=(indices[0]-k.centroid[1]+y_base_offset), z=z_idx))
           #w.writeln("{sig} = in(x + {xoff} - IN_WIDTH, y+{yoff}, {z});".format(sig=sigName, xoff=new_x_offset, yoff=(indices[0]-k.centroid[1]), z=z_idx))
-          w.writeln("{sig} = getr16_vv({sig});".format(sig=sigName))
+          w.writeln("{sig} = getr_vv({sig});".format(sig=sigName))
 
 
       w.writeln()
@@ -409,11 +409,11 @@ def write_main_tie(w, dag):
 
   w.writeln("")
   w.writeln("// Create a vector zero")
-  w.writeln("vector32 zero_v = mv16_sv(0);")
+  w.writeln("V16S zero_v = mv_sv(0);")
 
   w.writeln("")
   w.writeln("// Create the input image in vector format")
-  w.writeln("Image<vector32> {}_v(width/N, height, channels, zero_v);".format(dag.head))
+  w.writeln("Image<V16S> {}_v(width/N, height, channels, zero_v);".format(dag.head))
   w.writeln("shuffle_s2v({0}_ref, {0}_v);".format(dag.head))
   w.writeln('{0}_v.dumpDAT("{0}_v_dat");'.format(dag.head))
 
@@ -448,12 +448,12 @@ def write_main_tie(w, dag):
 
     
     # Pad the input image
-    w.writeln("Image<vector32> {img}_pad_v(width/N, height+{pad_top}+{pad_bottom}, {c}, zero_v);".format(img=k.src, pad_top=pad_rows_top, pad_bottom=pad_rows_bottom, c=in_channels))
+    w.writeln("Image<V16S> {img}_pad_v(width/N, height+{pad_top}+{pad_bottom}, {c}, zero_v);".format(img=k.src, pad_top=pad_rows_top, pad_bottom=pad_rows_bottom, c=in_channels))
     w.writeln('{img}_pad_v.padZeros({img}_v, {pad_top}, {pad_bottom});'.format(img=k.src, pad_top=pad_rows_top, pad_bottom=pad_rows_bottom))
     w.writeln('{0}_pad_v.dumpDAT("{0}_pad_v_dat");'.format(k.src))
 
     # Create an image for the output
-    w.writeln("Image<vector32> {0}_v(width/N, height, {1}, zero_v);".format(k.sink, out_channels))
+    w.writeln("Image<V16S> {0}_v(width/N, height, {1}, zero_v);".format(k.sink, out_channels))
     w.writeln("Image<int> {0}(width, height, {1}, 0);".format(k.sink, out_channels))
 
     w.writeln('xt_iss_switch_mode(XT_ISS_CYCLE_ACCURATE);')
@@ -553,8 +553,8 @@ def write_test_kernel(w, k):
   w.writeln()
   w.writeln("// global var for input/output data")
   attr = '__attribute__((section(".dram.data")))'
-  w.writeln("vector32 in_img[width/N * (height + {padding} ) * {c}] {attr};".format(c=in_channels, attr=attr, padding=(pad_rows_top+pad_rows_bottom)))
-  w.writeln("vector32 out_img[width/N * height * {c}] {attr};".format(c=out_channels, attr=attr))
+  w.writeln("V16S in_img[width/N * (height + {padding} ) * {c}] {attr};".format(c=in_channels, attr=attr, padding=(pad_rows_top+pad_rows_bottom)))
+  w.writeln("V16S out_img[width/N * height * {c}] {attr};".format(c=out_channels, attr=attr))
 
   w.writeln()
   w.writeln("int main(int argc, char* argv[])");
@@ -564,9 +564,9 @@ def write_test_kernel(w, k):
   w.writeln("setup_power_toggle();")
 
   w.writeln()
-  w.writeln("vector32 zero_v = mv16_sv(0);")
-  w.writeln("Image<vector32> {img}_pad_v(in_img, width/N, height+{padding}, {c}, zero_v);".format(img=k.src, c=in_channels, padding=(pad_rows_top+pad_rows_bottom)))
-  w.writeln("Image<vector32> {img}_v(out_img, width/N, height, {c}, zero_v);".format(img=k.sink, c=out_channels, padding=(pad_rows_top+pad_rows_bottom)))
+  w.writeln("V16S zero_v = mv_sv(0);")
+  w.writeln("Image<V16S> {img}_pad_v(in_img, width/N, height+{padding}, {c}, zero_v);".format(img=k.src, c=in_channels, padding=(pad_rows_top+pad_rows_bottom)))
+  w.writeln("Image<V16S> {img}_v(out_img, width/N, height, {c}, zero_v);".format(img=k.sink, c=out_channels, padding=(pad_rows_top+pad_rows_bottom)))
 
   w.writeln("// load input data")
   w.writeln("{0}_pad_v.loadDAT({0}_pad_v_dat);".format(k.src))
@@ -659,8 +659,6 @@ if __name__ == "__main__":
   w.writeln("#include <xtensa/xt_reftb.h>")
   w.writeln()
   for k in dag.kernels.values():
-      if k.name != "calcDem_3":
-          continue
       print ("\twriting kernel {}...".format(k.name))
       write_kernel_tie(w, k, 'source')
   w.close()

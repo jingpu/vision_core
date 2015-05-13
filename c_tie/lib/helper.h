@@ -27,11 +27,11 @@ void shuffle_s2v(const Image<S> &in, Image<V> &out) {
 	  memcpy(&shuffled_img[(i*w*c + j*c*N + k*N + n)*lane_width], &in_val, lane_width);
 	}
 
-  // copy the shuffled image to the vector32 array
+  // copy the shuffled image to the V16S array
   for(int i = 0; i < h; i++)
     for(int j = 0; j < w/N; j++)
       for(int k = 0; k < c; k++) {
-	vector32 *p_v32 = (vector32 *) &shuffled_img[(i*w*c + j*c*N + k*N)*lane_width];
+	V16S *p_v32 = (V16S *) &shuffled_img[(i*w*c + j*c*N + k*N)*lane_width];
 	out(j, i, k) = *p_v32;
       }
 
@@ -54,7 +54,7 @@ void shuffle_v2s(const Image<V> &in, Image<S> &out) {
   for(int i = 0; i < h; i++)
     for(int j = 0; j < w/N; j++)
       for(int k = 0; k < c; k++) {
-	vector32 *p_v32 = (vector32 *) &shuffled_img[(i*w*c + j*c*N + k*N)*lane_width];
+	V16S *p_v32 = (V16S *) &shuffled_img[(i*w*c + j*c*N + k*N)*lane_width];
 	*p_v32 = in(j, i, k);
       }
 

@@ -10,30 +10,30 @@
 #include <xtensa/config/system.h>
 #include <xtensa/xt_reftb.h>
 
-const int width = 512;  // TODO change to match input image
-const int height = 512;  // TODO change to match input image
+const int width = 256;  // TODO change to match input image
+const int height = 256;  // TODO change to match input image
 
 
 // global var for input/output data
-vector32 in_img[width/N * (height + 0 ) * 3] __attribute__((section(".dram.data")));
-vector32 out_img[width/N * height * 1] __attribute__((section(".dram.data")));
+V16S in_img[width/N * (height + 0 ) * 3] __attribute__((section(".dram.data")));
+V16S out_img[width/N * height * 1] __attribute__((section(".dram.data")));
 
 int main(int argc, char* argv[])
 {
   setup_power_toggle();
   
-  vector32 zero_v = mv16_sv(0);
-  Image<vector32> cropSpecial0Node_10_pad_v(in_img, width/N, height+0, 3, zero_v);
-  Image<vector32> lambda_arris_v3lua_line43_51_v(out_img, width/N, height, 1, zero_v);
+  V16S zero_v = mv_sv(0);
+  Image<V16S> cropSpecial0Node_7_pad_v(in_img, width/N, height+0, 3, zero_v);
+  Image<V16S> convertToIllum_55_v(out_img, width/N, height, 1, zero_v);
   // load input data
-  cropSpecial0Node_10_pad_v.loadDAT(cropSpecial0Node_10_pad_v_dat);
+  cropSpecial0Node_7_pad_v.loadDAT(cropSpecial0Node_7_pad_v_dat);
   
   #ifndef RTL_SIM
   xt_iss_switch_mode(XT_ISS_CYCLE_ACCURATE);
   xt_iss_trace_level(6);
   xt_iss_client_command("isa_profile", "enable");
   #endif
-  lambda_arris_v3lua_line43_10(cropSpecial0Node_10_pad_v, lambda_arris_v3lua_line43_51_v
+  convertToIllum_10(cropSpecial0Node_7_pad_v, convertToIllum_55_v
   	, tap_Green_to_Lum_0
   	, tap_Blue_to_Lum_0
   	, tap_Red_to_Lum_0
@@ -46,6 +46,6 @@ int main(int argc, char* argv[])
   #endif
   
   // compare output data
-  lambda_arris_v3lua_line43_51_v.cmpDAT(lambda_arris_v3lua_line43_51_v_dat);
+  convertToIllum_55_v.cmpDAT(convertToIllum_55_v_dat);
   return 0;
 }

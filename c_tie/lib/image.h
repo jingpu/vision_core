@@ -65,7 +65,7 @@ private:
 template <typename T>
 Image<T>::Image(int width, int height, int channels, T padding)
 {
-  printf("constructing Image object: w=%d, h=%d, c=%d, pixel size= %lub\n",
+  printf("constructing Image object: w=%d, h=%d, c=%d, pixel size= %luB\n",
   	 width, height, channels, sizeof(T));
   mWidth = width;
   mHeight = height;
@@ -125,7 +125,7 @@ bool Image<T>::equal(const Image<T> &img) const
   for(int i = 0; i < mHeight; i++)
     for(int j = 0; j < mWidth; j++)
       for(int k = 0; k < mChannels; k++)
-	if (operator()(j, i, k) != img(j, i, k)) {
+	if (((short)operator()(j, i, k)) != ((short)img(j, i, k))) {
 	  printf("DEBUG: equal(): values (%d vs %d) at [%d, %d, %d] don't match.\n",
 		 operator()(j, i, k), img(j, i, k), i, j, k);
 	  return false;
@@ -298,6 +298,7 @@ void Image<T>::dumpDAT(const char* var_name)
   size_t size = mWidth * mHeight * mChannels * sizeof(T);
   unsigned char *data = (unsigned char *)mData;
   const int item_per_line = 12;
+  /*
   fp= fopen("data.h","a");
   fprintf(fp, "static unsigned char\n");
   fprintf(fp, "\t%s[] = \n", var_name);
@@ -309,6 +310,7 @@ void Image<T>::dumpDAT(const char* var_name)
   }
   fprintf(fp, "\n};\n\n");
   fclose(fp);
+  */
 }
 
 

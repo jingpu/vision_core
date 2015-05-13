@@ -1,0 +1,911 @@
+######################
+## parameters
+######################
+; my $N = 32;  # number of SIMD lanes
+; my $R = 32;  # capacity of the regfile
+; my $use_fusion = 1;
+; my $use_semantic = 1;
+
+
+######################
+## inst encodeing
+######################
+
+format f32 32  {slot_f32}
+
+; my @wide_ops = ( 'mux.vv');
+; 
+; my @fused_ops = ();
+; if ($use_fusion) {
+;   @fused_ops = ('fusion2.clamp.vv',
+;                 'fusion2.sum3.vv',
+;                 'fusion2.min3.vv',
+;                 'fusion2.max3.vv',
+;                 'fusion2.mac.vv',
+;                 'fusion2.multRshift.vv');
+; }
+; push(@wide_ops, @fused_ops);
+; 
+; printf("slot_opcodes slot_f32 {%s}\n", join(', ', @wide_ops));
+
+
+######################
+## data type
+######################
+
+; printf("regfile vv %d %d v\n", $N*16, $R); 
+; printf("ctype V16S %d %d vv\n", $N*16, $N*16);
+
+######################
+## scalar functions
+######################
+
+
+function [18:0] func_alu16 ([15:0] op1, [15:0] op2, do_sub)
+{
+  wire [15:0] a = op1;
+  wire [15:0] b = do_sub ? ~op2 : op2;
+  wire cin = do_sub;
+  wire [16:0] sum;
+  assign sum = TIEadd(a, b, cin);
+
+  // comparison
+  wire zero = (sum[15:0] == 16'b0);
+  //wire cout = sum[16];
+  wire negative = sum[15];
+  wire overflow = (op1[15] != op2[15]) && (negative != op1[15]);
+
+  wire eq = zero;
+  wire lt = (negative ^ overflow);
+  wire le = ((negative ^ overflow) | zero);
+
+  assign func_alu16 = {eq, le, lt, sum[15:0]};
+}
+
+function [15:0] func_mult16 ([15:0] op1, [15:0] op2)
+{
+  wire do_signed = 1'b1;
+  wire [31:0] product = TIEmul(op1, op2, do_signed);
+  assign func_mult16  = product[15:0];
+}
+
+function [15:0] func_mux16 ([15:0] cond, [15:0] op1, [15:0] op2)
+{
+  assign func_mux16  = cond[0] ? op1 : op2;
+}
+
+// input is 2N-1 bits, offset k s.t. 0<=k<N
+function [15:0] func_funnelShift([30:0] Z, [3:0] k)
+{
+   wire [30:0] shifted = Z >> k;
+   assign func_funnelShift = shifted[15:0];
+}
+
+######################
+## shared/vector functions
+######################
+; sub get_vec_range {
+;   my $word_width = shift;
+;   my $MSB = $word_width * $N -1;
+;   my $LSB = 0;
+;   return "${MSB}:${LSB}";
+; }
+
+; sub get_vec_word_range {
+;   my $word_width = shift;
+;   my $word_idx = shift;
+;   my $return_width = shift || $word_width;  # default value is '$word_width'
+;   my $MSB = $word_width * $word_idx + $return_width - 1;
+;   my $LSB = $word_width * $word_idx;
+;   return "${MSB}:${LSB}";
+; }
+
+
+;# e.g. function [75:0] func_alu_vv([63:0] src1, [63:0] src2, do_sub) slot_shared
+; printf("function [%s] func_alu_vv([%s] src1, [%s] src2, do_sub) slot_shared\n",
+;         get_vec_range(19), get_vec_range(16), get_vec_range(16));
+{
+; #e.g. wire [15:0] res0 = func_mult16(src1[15:0], src2[15:0]);
+; foreach my $i (0..($N-1)) {
+;   printf("  wire [18:0] res%d = func_alu16(src1[%s], src2[%s], do_sub);\n",
+;           $i, get_vec_word_range(16, $i), get_vec_word_range(16, $i));
+; }
+
+; @results = map("res$_", reverse(0..($N-1)));
+; printf("  assign func_alu_vv = {%s};", join(', ', @results)); 
+}
+
+; # 2nd copy of func_alu_vv
+; printf("function [%s] func_alu_vv2([%s] src1, [%s] src2, do_sub) slot_shared\n",
+;         get_vec_range(19), get_vec_range(16), get_vec_range(16));
+{
+; foreach my $i (0..($N-1)) {
+;   printf("  wire [18:0] res%d = func_alu16(src1[%s], src2[%s], do_sub);\n",
+;           $i, get_vec_word_range(16, $i), get_vec_word_range(16, $i));
+; }
+
+; @results = map("res$_", reverse(0..($N-1)));
+; printf("  assign func_alu_vv2 = {%s};", join(', ', @results)); 
+}
+
+; printf("function [%s] func_mult_vv([%s] src1, [%s] src2) slot_shared\n",
+;         get_vec_range(16), get_vec_range(16), get_vec_range(16));
+{
+; foreach my $i (0..($N-1)) {
+;   printf("  wire [15:0] res%d = func_mult16(src1[%s], src2[%s]);\n",
+;           $i, get_vec_word_range(16, $i), get_vec_word_range(16, $i));
+; } # end of 'foreach my $i...'
+
+; @results = map("res$_", reverse(0..($N-1)));
+; printf("  assign func_mult_vv = {%s};", join(', ', @results)); 
+}
+
+; printf("function [%s] func_and_vv([%s] src1, [%s] src2) slot_shared\n",
+;         get_vec_range(16), get_vec_range(16), get_vec_range(16));
+{
+  assign func_and_vv = src1 & src2;
+}
+
+; printf("function [%s] func_or_vv([%s] src1, [%s] src2) slot_shared\n",
+;         get_vec_range(16), get_vec_range(16), get_vec_range(16));
+{
+  assign func_or_vv = src1 | src2;
+}
+
+
+; printf("function [%s] func_shift_vv([%s] z, [%s] k, op) slot_shared\n",
+;         get_vec_range(16), get_vec_range(16), get_vec_range(16));
+{
+  // parse opcode
+  wire lshift = op;
+
+;#  wire [30:0] z0 = lshift ? {z[15:0], 15'b0} : {{15{z[15]}}, z[15:0]};
+;#  wire [3:0]  k0 = lshift ? ~k[3:0] : k[3:0];
+;#  wire [15:0] res0 = func_funnelShift(z0, k0);
+;#  wire [30:0] z3 = lshift ? {z[63:48], 15'b0} : {{15{z[63]}}, z[63:48]};
+;#  wire [3:0]  k3 = lshift ? ~k[51:48] : k[51:48];
+;#
+; foreach my $i (0..($N-1)) {
+;   printf("  wire [30:0] z%d = lshift ? {z[%s], 15'b0} : {{15{z[%d]}}, z[%s]};\n",
+;           $i, get_vec_word_range(16, $i), (16*($i+1)-1),get_vec_word_range(16, $i));
+;   printf("  wire [3:0]  k%d = lshift ? ~k[%s] : k[%s];\n",
+;           $i, get_vec_word_range(16, $i, 4), get_vec_word_range(16, $i, 4));
+;   printf("  wire [15:0] res%d = func_funnelShift(z%d, k%d);\n", $i, $i, $i);
+; } # end of 'foreach my $i...'
+
+; @results = map("res$_", reverse(0..($N-1)));
+; printf("  assign func_shift_vv = {%s};", join(', ', @results)); 
+}
+
+// mux is not shared
+; printf("function [%s] func_mux_vv([%s] src1, [%s] src2, [%s] src3)\n",
+;         get_vec_range(16), get_vec_range(16), get_vec_range(16), get_vec_range(16));
+{
+; foreach my $i (0..($N-1)) {
+;   printf("  wire [15:0] res%d = func_mux16(src1[%s], src2[%s], src3[%s]);\n",
+;           $i, get_vec_word_range(16, $i), get_vec_word_range(16, $i), get_vec_word_range(16, $i));
+; } # end of 'foreach my $i...'
+
+; @results = map("res$_", reverse(0..($N-1)));
+; printf("  assign func_mux_vv = {%s};", join(', ', @results)); 
+}
+
+
+######################
+## ALU operations
+######################
+
+operation add.vv {out vv des, in vv src1, in vv src2}{}
+{
+; printf("  wire [%s] tmp = func_alu_vv(src1, src2, 1'b0);\n", get_vec_range(19));
+
+; foreach my $i (0..($N-1)) {
+;   printf("  wire [15:0] res%d = tmp[%s];\n",
+;           $i, get_vec_word_range(19, $i, 16));
+; } # end of 'foreach my $i...'
+
+; @results = map("res$_", reverse(0..($N-1)));
+; printf("  assign des = {%s};", join(', ', @results)); 
+}
+
+operation sub.vv {out vv des, in vv src1, in vv src2}{}
+{
+; printf("  wire [%s] tmp = func_alu_vv(src1, src2, 1'b1);\n", get_vec_range(19));
+
+; foreach my $i (0..($N-1)) {
+;   printf("  wire [15:0] res%d = tmp[%s];\n",
+;           $i, get_vec_word_range(19, $i, 16));
+; } # end of 'foreach my $i...'
+
+; @results = map("res$_", reverse(0..($N-1)));
+; printf("  assign des = {%s};", join(', ', @results)); 
+}
+
+operation lt.vv {out vv des, in vv src1, in vv src2}{}
+{
+; printf("  wire [%s] tmp = func_alu_vv(src1, src2, 1'b1);\n", get_vec_range(19));
+
+; foreach my $i (0..($N-1)) {
+;   printf("  wire [15:0] res%d = {15'b0, tmp[%d]};\n",
+;           $i, 19*$i+16);
+; } # end of 'foreach my $i...'
+
+; @results = map("res$_", reverse(0..($N-1)));
+; printf("  assign des = {%s};", join(', ', @results)); 
+}
+
+
+operation lte.vv {out vv des, in vv src1, in vv src2}{}
+{
+; printf("  wire [%s] tmp = func_alu_vv(src1, src2, 1'b1);\n", get_vec_range(19));
+
+; foreach my $i (0..($N-1)) {
+;   printf("  wire [15:0] res%d = {15'b0, tmp[%d]};\n",
+;           $i, 19*$i+17);
+; } # end of 'foreach my $i...'
+
+; @results = map("res$_", reverse(0..($N-1)));
+; printf("  assign des = {%s};", join(', ', @results)); 
+}
+
+operation eq.vv {out vv des, in vv src1, in vv src2}{}
+{
+; printf("  wire [%s] tmp = func_alu_vv(src1, src2, 1'b1);\n", get_vec_range(19));
+
+; foreach my $i (0..($N-1)) {
+;   printf("  wire [15:0] res%d = {15'b0, tmp[%d]};\n",
+;           $i, 19*$i+18);
+; } # end of 'foreach my $i...'
+
+; @results = map("res$_", reverse(0..($N-1)));
+; printf("  assign des = {%s};", join(', ', @results)); 
+}
+
+
+operation ne.vv {out vv des, in vv src1, in vv src2}{}
+{
+; printf("  wire [%s] tmp = func_alu_vv(src1, src2, 1'b1);\n", get_vec_range(19));
+
+; foreach my $i (0..($N-1)) {
+;   printf("  wire [15:0] res%d = {15'b0, ~tmp[%d]};\n",
+;           $i, 19*$i+18);
+; } # end of 'foreach my $i...'
+
+; @results = map("res$_", reverse(0..($N-1)));
+; printf("  assign des = {%s};", join(', ', @results)); 
+}
+
+proto gt.vv {out V16S des, in V16S src1, in V16S src2} {} 
+{
+  lt.vv des, src2, src1;
+}
+
+proto gte.vv {out V16S des, in V16S src1, in V16S src2} {} 
+{
+  lte.vv des, src2, src1;
+}
+
+
+operation inv.vv {out vv des, in vv src1}{}
+{
+; printf("  wire [%s] tmp = func_alu_vv(%d'b0, src1, 1'b1);\n", get_vec_range(19), $N*16);
+
+; foreach my $i (0..($N-1)) {
+;   printf("  wire [15:0] res%d = tmp[%s];\n",
+;           $i, get_vec_word_range(19, $i, 16));
+; } # end of 'foreach my $i...'
+
+; @results = map("res$_", reverse(0..($N-1)));
+; printf("  assign des = {%s};", join(', ', @results)); 
+}
+
+operation not.vv {out vv des, in vv src1}{}
+{
+; printf("  wire [%s] tmp = func_alu_vv(%d'b0, src1, 1'b1);\n", get_vec_range(19), $N*16);
+
+; foreach my $i (0..($N-1)) {
+;   printf("  wire [15:0] res%d = {15'b0, tmp[%d]};\n",
+;           $i, 19*$i+18);
+; } # end of 'foreach my $i...'
+
+; @results = map("res$_", reverse(0..($N-1)));
+; printf("  assign des = {%s};", join(', ', @results)); 
+}
+
+operation abs.vv {out vv des, in vv src1}{}
+{
+; printf("  wire [%s] tmp = func_alu_vv(%d'b0, src1, 1'b1);\n", get_vec_range(19), $N*16);
+
+; foreach my $i (0..($N-1)) {
+;   printf("  wire [15:0] res%d = (src1[%d] == 1'b0) ? src1[%s] : tmp[%s];\n",
+;           $i, 16*($i+1)-1, get_vec_word_range(16, $i), get_vec_word_range(16, $i));
+; } # end of 'foreach my $i...'
+
+; @results = map("res$_", reverse(0..($N-1)));
+; printf("  assign des = {%s};", join(', ', @results)); 
+}
+
+; if ($use_semantic) {
+
+semantic alu.vv {add.vv, sub.vv, lt.vv, lte.vv, eq.vv, ne.vv, inv.vv, not.vv, abs.vv} 
+{
+  wire do_sub = add.vv ? 1'b0 : 1'b1;
+
+  wire inv =  inv.vv | not.vv | abs.vv;  // perform "0 - scr1"
+
+  // adder operands
+; printf("  wire [%s] a = inv ? %d'b0 : src1;\n", get_vec_range(16), $N*16);
+; printf("  wire [%s] b = inv ? src1 : src2;\n", get_vec_range(16));
+
+; printf("  wire [%s] tmp = func_alu_vv(a, b, do_sub);\n", get_vec_range(19));
+
+  // adder results
+; foreach my $i (0..($N-1)) {
+;   printf("  wire [15:0] res%d = tmp[%s];\n", $i, get_vec_word_range(19, $i, 16));
+;   printf("  wire        lt%d  = tmp[%d];\n", $i, 19*$i+16);
+;   printf("  wire        le%d  = tmp[%d];\n", $i, 19*$i+17);
+;   printf("  wire        eq%d  = tmp[%d];\n", $i, 19*$i+18);
+; } 
+
+  // compare results
+  wire cmp_op = lt.vv | lte.vv | eq.vv | ne.vv | not.vv;
+
+; foreach my $i (0..($N-1)) {
+;   printf("  wire [15:0] cmp_res%d = {15'b0, TIEsel(lt.vv, lt%d, lte.vv, le%d, (not.vv | eq.vv), eq%d, ne.vv, ~eq%d)};\n", $i, $i, $i, $i, $i);
+; } 
+
+
+  // abs results
+; foreach my $i (0..($N-1)) {
+;   printf("  wire [15:0] abs%d = (src1[%d] == 1'b0) ? src1[%s] : tmp[%s];\n",
+;          $i, 16*($i+1)-1, get_vec_word_range(16, $i), get_vec_word_range(19, $i, 16));
+; } 
+
+; @ress = map("res$_", reverse(0..($N-1)));
+; @abss = map("abs$_", reverse(0..($N-1)));
+; @cmps = map("cmp_res$_", reverse(0..($N-1)));
+; printf("  assign des = cmp_op ? {%s} : abs.vv ? {%s} : {%s};\n",
+;         join(', ', @cmps), join(', ', @abss), join(', ', @ress));
+}
+
+// data gate
+property data_gate alu.vv {src1, src2}
+
+; } #  end of 'if ($use_semantic) ...'
+
+######################
+## bitwise operations
+######################
+
+operation and.vv {out vv des, in vv src1, in vv src2}{}
+{
+  assign des = func_and_vv(src1, src2);
+}
+
+operation or.vv {out vv des, in vv src1, in vv src2}{}
+{
+  assign des = func_or_vv(src1, src2);
+}
+
+
+######################
+## multiplication operations
+######################
+
+operation mult.vv {out vv des, in vv src1, in vv src2}{}
+{
+  assign des = func_mult_vv(src1, src2);
+}
+
+; if ($use_fusion == 0) {
+// data gate
+property data_gate mult.vv {src1, src2}
+}
+
+######################
+## selection operations
+######################
+
+operation mux.vv {out vv des, in vv select, 
+                    in vv src1, in vv src2}{}
+{
+  assign des = func_mux_vv(select, src1, src2);
+}
+
+operation min.vv {out vv des, in vv src1, in vv src2}{}
+{
+; printf("  wire [%s] tmp = func_alu_vv(src1, src2, 1'b1);\n", get_vec_range(19));
+
+; foreach my $i (0..($N-1)) {
+;   printf("  wire [15:0] cond%d = {15'b0, tmp[%d]};\n",
+;           $i, 19*$i+17);
+; } # end of 'foreach my $i...'
+
+; @conds = map("cond$_", reverse(0..($N-1)));
+; printf(" wire [%s] cond = {%s};", get_vec_range(16), join(', ', @conds));
+  assign des = func_mux_vv(cond, src1, src2);
+}
+
+operation max.vv {out vv des, in vv src1, in vv src2}{}
+{
+; printf("  wire [%s] tmp = func_alu_vv(src1, src2, 1'b1);\n", get_vec_range(19));
+
+; foreach my $i (0..($N-1)) {
+;   printf("  wire [15:0] cond%d = {15'b0, ~tmp[%d]};\n",
+;           $i, 19*$i+17);
+; } # end of 'foreach my $i...'
+
+; @conds = map("cond$_", reverse(0..($N-1)));
+; printf(" wire [%s] cond = {%s};", get_vec_range(16), join(', ', @conds));
+  assign des = func_mux_vv(cond, src1, src2);
+}
+
+semantic select.vv {mux.vv, min.vv, max.vv}
+{
+; printf("  wire [%s] tmp = func_alu_vv(src1, src2, 1'b1);\n", get_vec_range(19));
+
+; foreach my $i (0..($N-1)) {
+;   printf("  wire [15:0] cond%d = {15'b0, min.vv ? tmp[%d] : ~tmp[%d]};\n",
+;           $i, 19*$i+17, 19*$i+17);
+; } # end of 'foreach my $i...'
+
+; @conds = map("cond$_", reverse(0..($N-1)));
+; printf(" wire [%s] cond = mux.vv ? select : {%s};", get_vec_range(16), join(', ', @conds));
+  assign des = func_mux_vv(cond, src1, src2);
+}
+
+// data gate
+property data_gate select.vv {src1, src2}
+
+######################
+## shift operations
+######################
+
+operation lshift.vv {out vv des, in vv src1, in vv src2} {}
+{
+   // TODO check src2 >= 16
+   assign des = func_shift_vv(src1, src2, 1'b1);
+}
+
+operation rshift.vv {out vv des, in vv src1, in vv src2} {}
+{
+   // TODO check src2 >= 16
+   assign des = func_shift_vv(src1, src2, 1'b0);
+}
+
+semantic shift.vv {lshift.vv, rshift.vv}
+{
+   // TODO check src2 >= 16
+   assign des = func_shift_vv(src1, src2, lshift.vv);
+}
+
+// data gate
+property data_gate shift.vv {src1, src2}
+
+
+######################
+## special operations
+######################
+
+operation mv.sv {out vv des, in AR src1}{}
+{
+; foreach my $i (0..($N-1)) {
+;   printf("  wire [15:0] res%d = src1[15:0];\n",  $i);
+; } # end of 'foreach my $i...'
+   
+; @results = map("res$_", reverse(0..($N-1)));
+; printf("  assign des = {%s};", join(', ', @results)); 
+}
+
+operation getr.vv {out vv des, in vv src1}{}
+{
+; foreach my $i (0..($N-2)) {
+;   printf("  wire [15:0] res%d = src1[%s];\n",
+;           $i, get_vec_word_range(16, $i+1));
+; } # end of 'foreach my $i...'
+; printf("  wire [15:0] res%d = 16'b0;\n",  $N-1); 
+
+; @results = map("res$_", reverse(0..($N-1)));
+; printf("  assign des = {%s};", join(', ', @results)); 
+}
+
+operation getl.vv {out vv des, in vv src1}{}
+{
+  wire [15:0] res0 = 16'b0;
+; foreach my $i (1..($N-1)) {
+;   printf("  wire [15:0] res%d = src1[%s];\n",
+;           $i, get_vec_word_range(16, $i-1));
+; } # end of 'foreach my $i...'
+
+; @results = map("res$_", reverse(0..($N-1)));
+; printf("  assign des = {%s};", join(', ', @results)); 
+}
+
+immediate_range my_imm6 -2048 1984 64
+
+operation ldiu.vv {out vv vreg, inout vv *addr, in my_imm6 imm}
+{out VAddr, in MemDataIn512} {
+  wire [31:0] address = addr + imm;
+  assign VAddr = address;
+  assign vreg = MemDataIn512;
+  assign addr = address;
+}
+
+operation stiu.vv {in vv vreg, inout vv *addr, in my_imm6 imm}
+{out VAddr, out MemDataOut512} {
+  wire [31:0] address = addr + imm;
+  assign VAddr = address;
+  assign MemDataOut512 = vreg;
+  assign addr = address;
+}
+
+proto V16S_loadiu {out V16S v, inout V16S *p, in immediate o} {} {
+  ldiu.vv v, p, o;
+}
+proto V16S_storeiu {in V16S v, inout V16S *p, in immediate o} {} {
+  stiu.vv v, p, o;
+}
+
+
+; if ($use_fusion) {
+############################################################
+##                 Fused Operations                      ##
+############################################################
+
+####################
+## mac
+####################
+
+
+operation fusion2.mac.vv {out vv des, in vv src1, in vv src2, in vv src3}{}
+{
+; printf("  wire [%s] prod = func_mult_vv(src1, src2);\n", get_vec_range(16));
+; printf("  wire [%s] tmp = func_alu_vv(prod, src3, 1'b0);\n", get_vec_range(19));
+
+; foreach my $i (0..($N-1)) {
+;   printf("  wire [15:0] res%d = tmp[%s];\n", $i, get_vec_word_range(19, $i, 16));
+; } # end of 'foreach my $i...'
+
+; @results = map("res$_", reverse(0..($N-1)));
+; printf("  assign des = {%s};", join(', ', @results)); 
+}
+
+imap fusion2.mac.vv.case1 {out vv des, in vv src1, in vv src2, in vv src3}
+{ {}
+  {
+    fusion2.mac.vv des, src1, src2, src3;
+  }
+}
+{ {vv prod}
+  {
+    mult.vv prod, src1, src2;
+    add.vv des, prod, src3;
+  }
+}
+
+imap fusion2.mac.vv.case2 {out vv des, in vv src1, in vv src2, in vv src3}
+{ {}
+  {
+    fusion2.mac.vv des, src1, src2, src3;
+  }
+}
+{ {vv prod}
+  {
+    mult.vv prod, src1, src2;
+    add.vv des, src3, prod;
+  }
+}
+
+####################
+## mult and rshift
+####################
+
+operation fusion2.multRshift.vv {out vv des, in vv src1, 
+                    in vv src2, in vv src3}{}
+{
+; printf("  wire [%s] prod = func_mult_vv(src1, src2);\n", get_vec_range(16));
+   assign des = func_shift_vv(prod, src3, 1'b0);
+}
+
+imap fusion2.multRshift.case1 {out vv des, in vv src1, in vv src2, in vv src3}
+{ {}
+  {
+    fusion2.multRshift.vv des, src1, src2, src3;
+  }
+}
+{ {vv prod}
+  {
+    mult.vv prod, src1, src2;
+    rshift.vv des, prod, src3;
+  }
+} 
+
+
+####################
+## sum3
+####################
+
+operation fusion2.sum3.vv {out vv des, in vv src1, in vv src2, in vv src3}{}
+{
+; printf("  wire [%s] tmp1 = func_alu_vv(src1, src2, 1'b0);\n", get_vec_range(19));
+
+; foreach my $i (0..($N-1)) {
+;   printf("  wire [15:0] sum_pp%d = tmp1[%s];\n", $i, get_vec_word_range(19, $i, 16));
+; } # end of 'foreach my $i...'
+
+; @results = map("sum_pp$_", reverse(0..($N-1)));
+; printf("  wire [%s] sum = {%s};", get_vec_range(16), join(', ', @results));
+
+; printf("  wire [%s] tmp2 = func_alu_vv2(sum, src3, 1'b0);\n", get_vec_range(19));
+
+; foreach my $i (0..($N-1)) {
+;   printf("  wire [15:0] res%d = tmp2[%s];\n", $i, get_vec_word_range(19, $i, 16));
+; } # end of 'foreach my $i...'
+
+; @results = map("res$_", reverse(0..($N-1)));
+; printf("  assign des = {%s};", join(', ', @results));
+}
+
+// data gate
+property data_gate fusion2.sum3.vv {src1, src2, src3}
+
+imap fusion2.sum3.vv.case1 {out vv des, in vv src1, in vv src2, in vv src3}
+{ {}
+  {
+    fusion2.sum3.vv des, src1, src2, src3;
+  }
+}
+{ {vv sum}
+  {
+    add.vv sum, src1, src2;
+    add.vv des, src3, sum;
+  }
+}
+
+imap fusion2.sum3.vv.case2 {out vv des, in vv src1, 
+                    in vv src2, in vv src3}
+{ {}
+  {
+    fusion2.sum3.vv des, src1, src2, src3;
+  }
+}
+{ {vv sum}
+  {
+    add.vv sum, src1, src2;
+    add.vv des, sum, src3;
+  }
+}
+
+
+####################
+## clamp
+####################
+
+operation fusion2.clamp.vv {out vv des, in vv src1, 
+                    in vv src2, in vv src3}{}
+{
+// do max
+; printf("  wire [%s] max_cmp = func_alu_vv(src1, src2, 1'b1);\n", get_vec_range(19));
+; foreach my $i (0..($N-1)) {
+;   printf("  wire [15:0] max_cond%d = {15'b0, ~max_cmp[%d]};\n", $i, 19*$i+17);
+; }
+; @conds = map("max_cond$_", reverse(0..($N-1)));
+; printf("  wire [%s] max_cond = {%s};", get_vec_range(16), join(', ', @conds));
+; printf("  wire [%s] max = func_mux_vv(max_cond, src1, src2);\n", get_vec_range(16));
+
+// do min
+; printf("  wire [%s] min_cmp = func_alu_vv2(max, src3, 1'b1);\n", get_vec_range(19));
+; foreach my $i (0..($N-1)) {
+;   printf("  wire [15:0] min_cond%d = {15'b0, min_cmp[%d]};\n", $i, 19*$i+17);
+; }
+; @conds = map("min_cond$_", reverse(0..($N-1)));
+; printf("  wire [%s] min_cond = {%s};", get_vec_range(16), join(', ', @conds));
+  assign des = func_mux_vv(min_cond, max, src3);
+}
+
+imap fusion2.clamp.vv.case1 {out vv des, in vv src1, in vv src2, in vv src3}
+{ {}
+  {
+    fusion2.clamp.vv des, src1, src2, src3;
+  }
+}
+{ {vv max}
+  {
+    max.vv	max, src1, src2;
+    min.vv	des, max, src3;
+  }
+}
+
+imap fusion2.clamp.vv.case2 {out vv des, in vv src1, in vv src2, in vv src3}
+{ {}
+  {
+    fusion2.clamp.vv des, src1, src2, src3;
+  }
+}
+{ {vv max}
+  {
+    max.vv	max, src1, src2;
+    min.vv	des, src3, max;
+  }
+}
+
+imap fusion2.clamp.vv.case3 {out vv des, in vv src1, in vv src2, in vv src3}
+{ {}
+  {
+    fusion2.clamp.vv des, src1, src2, src3;
+  }
+}
+{ {vv min}
+  {
+    min.vv	min, src1, src3;
+    max.vv	des, min, src2;
+  }
+}
+
+imap fusion2.clamp.vv.case4 {out vv des, in vv src1, in vv src2, in vv src3}
+{ {}
+  {
+    fusion2.clamp.vv des, src1, src2, src3;
+  }
+}
+{ {vv min}
+  {
+    min.vv	min, src1, src3;
+    max.vv	des, src2, min;
+  }
+}
+
+
+####################
+## min3
+####################
+
+operation fusion2.min3.vv {out vv des, in vv src1, in vv src2, in vv src3}{}
+{
+// do min
+; printf("  wire [%s] tmp1 = func_alu_vv(src1, src2, 1'b1);\n", get_vec_range(19));
+; foreach my $i (0..($N-1)) {
+;   printf("  wire [15:0] cond1_%d = {15'b0, tmp1[%d]};\n", $i, 19*$i+17);
+; }
+; @conds = map("cond1_$_", reverse(0..($N-1)));
+; printf("  wire [%s] cond1 = {%s};", get_vec_range(16), join(', ', @conds));
+; printf("  wire [%s] interm = func_mux_vv(cond1, src1, src2);\n", get_vec_range(16));
+
+// do min
+; printf("  wire [%s] tmp2 = func_alu_vv2(interm, src3, 1'b1);\n", get_vec_range(19));
+; foreach my $i (0..($N-1)) {
+;   printf("  wire [15:0] cond2_%d = {15'b0, tmp2[%d]};\n", $i, 19*$i+17);
+; }
+; @conds = map("cond2_$_", reverse(0..($N-1)));
+; printf("  wire [%s] cond2 = {%s};", get_vec_range(16), join(', ', @conds));
+  assign des = func_mux_vv(cond2, interm, src3);
+}
+
+imap fusion2.min3.vv.case1 {out vv des, in vv src1, in vv src2, in vv src3}
+{ {}
+  {
+    fusion2.min3.vv des, src1, src2, src3;
+  }
+}
+{ {vv min}
+  {
+    min.vv min, src1, src2;
+    min.vv des, src3, min;
+  }
+}
+
+imap fusion2.min3.vv.case2 {out vv des, in vv src1, in vv src2, in vv src3}
+{ {}
+  {
+    fusion2.min3.vv des, src1, src2, src3;
+  }
+}
+{ {vv min}
+  {
+    min.vv min, src1, src2;
+    min.vv des, min, src3;
+  }
+}
+
+
+####################
+## max3
+####################
+
+operation fusion2.max3.vv {out vv des, in vv src1, in vv src2, in vv src3}{}
+{
+// do max
+; printf("  wire [%s] tmp1 = func_alu_vv(src1, src2, 1'b1);\n", get_vec_range(19));
+; foreach my $i (0..($N-1)) {
+;   printf("  wire [15:0] cond1_%d = {15'b0, ~tmp1[%d]};\n", $i, 19*$i+17);
+; }
+; @conds = map("cond1_$_", reverse(0..($N-1)));
+; printf("  wire [%s] cond1 = {%s};", get_vec_range(16), join(', ', @conds));
+; printf("  wire [%s] interm = func_mux_vv(cond1, src1, src2);\n", get_vec_range(16));
+
+// do max
+; printf("  wire [%s] tmp2 = func_alu_vv2(interm, src3, 1'b1);\n", get_vec_range(19));
+; foreach my $i (0..($N-1)) {
+;   printf("  wire [15:0] cond2_%d = {15'b0, ~tmp2[%d]};\n", $i, 19*$i+17);
+; }
+; @conds = map("cond2_$_", reverse(0..($N-1)));
+; printf("  wire [%s] cond2 = {%s};", get_vec_range(16), join(', ', @conds));
+  assign des = func_mux_vv(cond2, interm, src3);
+}
+
+imap fusion2.max3.vv.case1 {out vv des, in vv src1, in vv src2, in vv src3}
+{ {}
+  {
+    fusion2.max3.vv des, src1, src2, src3;
+  }
+}
+{ {vv max}
+  {
+    max.vv max, src1, src2;
+    max.vv des, src3, max;
+  }
+}
+
+imap fusion2.max3.vv.case2 {out vv des, in vv src1, in vv src2, in vv src3}
+{ {}
+  {
+    fusion2.max3.vv des, src1, src2, src3;
+  }
+}
+{ {vv max}
+  {
+    max.vv max, src1, src2;
+    max.vv des, max, src3;
+  }
+}
+
+; if ($use_semantic) {
+
+####################
+## semantic
+####################
+
+semantic mulx.vv {mult.vv, fusion2.mac.vv, fusion2.multRshift.vv}
+{
+; printf("  wire [%s] prod = func_mult_vv(src1, src2);\n", get_vec_range(16));
+
+; printf("  wire [%s] sum = func_alu_vv(prod, src3, 1'b0);\n", get_vec_range(19));
+; foreach my $i (0..($N-1)) {
+;   printf("  wire [15:0] acc%d = sum[%s];\n", $i, get_vec_word_range(19, $i, 16));
+; } 
+; @results = map("acc$_", reverse(0..($N-1)));
+; printf("  wire [%s] acc = {%s};", get_vec_range(16), join(', ', @results));
+
+; printf("  wire [%s] shift = func_shift_vv(prod, src3, 1'b0);\n", get_vec_range(16));
+
+  assign des = TIEsel(mult.vv, prod, fusion2.mac.vv, acc, fusion2.multRshift.vv, shift);
+}
+
+property data_gate mulx.vv {src1, src2, src3}
+
+semantic minmax.vv {fusion2.max3.vv, fusion2.min3.vv, fusion2.clamp.vv}
+{
+// first mux
+; printf("  wire [%s] tmp1 = func_alu_vv(src1, src2, 1'b1);\n", get_vec_range(19));
+; foreach my $i (0..($N-1)) {
+;   printf("  wire [15:0] cond1_%d = {15'b0, fusion2.min3.vv ? tmp1[%d] : ~tmp1[%d]};\n", $i, 19*$i+17, 19*$i+17);
+; }
+; @conds = map("cond1_$_", reverse(0..($N-1)));
+; printf("  wire [%s] cond1 = {%s};", get_vec_range(16), join(', ', @conds));
+; printf("  wire [%s] interm = func_mux_vv(cond1, src1, src2);\n", get_vec_range(16));
+
+// second mux
+; printf("  wire [%s] tmp2 = func_alu_vv2(interm, src3, 1'b1);\n", get_vec_range(19));
+; foreach my $i (0..($N-1)) {
+;   printf("  wire [15:0] cond2_%d = {15'b0, fusion2.max3.vv ?  ~tmp1[%d] : tmp2[%d]};\n", $i, 19*$i+17, 19*$i+17);
+; }
+; @conds = map("cond2_$_", reverse(0..($N-1)));
+; printf("  wire [%s] cond2 = {%s};", get_vec_range(16), join(', ', @conds));
+  assign des = func_mux_vv(cond2, interm, src3);
+}
+
+property data_gate minmax.vv {src1, src2, src3}
+
+; } #  end of 'if ($use_semantic) ...'
+
+; } # end of 'if ($use_fusion)'

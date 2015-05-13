@@ -10,21 +10,21 @@
 #include <xtensa/config/system.h>
 #include <xtensa/xt_reftb.h>
 
-const int width = 512;  // TODO change to match input image
-const int height = 512;  // TODO change to match input image
+const int width = 256;  // TODO change to match input image
+const int height = 256;  // TODO change to match input image
 
 
 // global var for input/output data
-vector32 in_img[width/N * (height + 2 ) * 1] __attribute__((section(".dram.data")));
-vector32 out_img[width/N * height * 1] __attribute__((section(".dram.data")));
+V16S in_img[width/N * (height + 2 ) * 1] __attribute__((section(".dram.data")));
+V16S out_img[width/N * height * 1] __attribute__((section(".dram.data")));
 
 int main(int argc, char* argv[])
 {
   setup_power_toggle();
   
-  vector32 zero_v = mv16_sv(0);
-  Image<vector32> downCast_38_pad_v(in_img, width/N, height+2, 1, zero_v);
-  Image<vector32> Resp_32_v(out_img, width/N, height, 1, zero_v);
+  V16S zero_v = mv_sv(0);
+  Image<V16S> downCast_38_pad_v(in_img, width/N, height+2, 1, zero_v);
+  Image<V16S> Resp_18_v(out_img, width/N, height, 1, zero_v);
   // load input data
   downCast_38_pad_v.loadDAT(downCast_38_pad_v_dat);
   
@@ -33,7 +33,7 @@ int main(int argc, char* argv[])
   xt_iss_trace_level(6);
   xt_iss_client_command("isa_profile", "enable");
   #endif
-  Resp_5(downCast_38_pad_v, Resp_32_v
+  Resp_5(downCast_38_pad_v, Resp_18_v
   	, tap_K_0
   );
   #ifndef RTL_SIM
@@ -43,6 +43,6 @@ int main(int argc, char* argv[])
   #endif
   
   // compare output data
-  Resp_32_v.cmpDAT(Resp_32_v_dat);
+  Resp_18_v.cmpDAT(Resp_18_v_dat);
   return 0;
 }

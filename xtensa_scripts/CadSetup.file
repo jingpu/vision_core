@@ -118,7 +118,7 @@ Target_MinClockInsertion  0.42
 # constraint specification file are specified as a percentage of Target_ClockPeriod
 # and are with respect to CLK, the corresponding input or output delays will change
 # when the following variable is modified.
-Target_ClockPeriod  2.5
+Target_ClockPeriod  2.0
 
 # Specify the clock source jitter for the Xtensa core in the target library time unit.
 # Since jitter cannot be optimized away, it is a constant drag on the setup timing paths

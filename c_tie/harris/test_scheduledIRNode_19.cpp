@@ -15,31 +15,25 @@ const int height = 256;  // TODO change to match input image
 
 
 // global var for input/output data
-V16S in_img[width/N * (height + 4 ) * 1] __attribute__((section(".dram.data")));
-V16S out_img[width/N * height * 1] __attribute__((section(".dram.data")));
+V16S in_img[width/N * (height + 0 ) * 3] __attribute__((section(".dram.data")));
+V16S out_img[width/N * height * 3] __attribute__((section(".dram.data")));
 
 int main(int argc, char* argv[])
 {
   setup_power_toggle();
   
   V16S zero_v = mv_sv(0);
-  Image<V16S> convertToIllum_55_pad_v(in_img, width/N, height+4, 1, zero_v);
-  Image<V16S> downCast_20_v(out_img, width/N, height, 1, zero_v);
+  Image<V16S> special0_pad_v(in_img, width/N, height+0, 3, zero_v);
+  Image<V16S> cropSpecial0Node_7_v(out_img, width/N, height, 3, zero_v);
   // load input data
-  convertToIllum_55_pad_v.loadDAT(convertToIllum_55_pad_v_dat);
+  special0_pad_v.loadDAT(special0_pad_v_dat);
   
   #ifndef RTL_SIM
   xt_iss_switch_mode(XT_ISS_CYCLE_ACCURATE);
   xt_iss_trace_level(6);
   xt_iss_client_command("isa_profile", "enable");
   #endif
-  downCast_13(convertToIllum_55_pad_v, downCast_20_v
-  	, tap_G1_0
-  	, tap_G0_0
-  	, tap_G2_0
-  	, tap_G4_0
-  	, tap_G3_0
-  	, tap_R_0
+  scheduledIRNode_19(special0_pad_v, cropSpecial0Node_7_v
   );
   #ifndef RTL_SIM
   xt_iss_client_command("isa_profile", "disable");
@@ -48,6 +42,6 @@ int main(int argc, char* argv[])
   #endif
   
   // compare output data
-  downCast_20_v.cmpDAT(downCast_20_v_dat);
+  cropSpecial0Node_7_v.cmpDAT(cropSpecial0Node_7_v_dat);
   return 0;
 }

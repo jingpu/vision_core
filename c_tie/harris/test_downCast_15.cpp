@@ -10,21 +10,21 @@
 #include <xtensa/config/system.h>
 #include <xtensa/xt_reftb.h>
 
-const int width = 512;  // TODO change to match input image
-const int height = 512;  // TODO change to match input image
+const int width = 256;  // TODO change to match input image
+const int height = 256;  // TODO change to match input image
 
 
 // global var for input/output data
-vector32 in_img[width/N * (height + 0 ) * 1] __attribute__((section(".dram.data")));
-vector32 out_img[width/N * height * 1] __attribute__((section(".dram.data")));
+V16S in_img[width/N * (height + 0 ) * 1] __attribute__((section(".dram.data")));
+V16S out_img[width/N * height * 1] __attribute__((section(".dram.data")));
 
 int main(int argc, char* argv[])
 {
   setup_power_toggle();
   
-  vector32 zero_v = mv16_sv(0);
-  Image<vector32> downCast_20_pad_v(in_img, width/N, height+0, 1, zero_v);
-  Image<vector32> downCast_38_v(out_img, width/N, height, 1, zero_v);
+  V16S zero_v = mv_sv(0);
+  Image<V16S> downCast_20_pad_v(in_img, width/N, height+0, 1, zero_v);
+  Image<V16S> downCast_38_v(out_img, width/N, height, 1, zero_v);
   // load input data
   downCast_20_pad_v.loadDAT(downCast_20_pad_v_dat);
   

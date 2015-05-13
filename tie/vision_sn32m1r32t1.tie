@@ -1,5 +1,5 @@
 ; my $N = 32;
-; my $R = 64;
+; my $R = 32;
 ; my $fusion = 1;
 
 format f32 32  {slot_f32}
@@ -25,6 +25,7 @@ slot_opcodes slot_f32 {
 
 // R-entry N-way SIMD vector regfile
 ; printf("regfile vector32 %d %d v32r\n", $N*16, $R); 
+; printf("ctype vector32 %d %d vector32\n", $N*16, $N*16);
 
 
 // List of DPDA operation natively supported in TIE
@@ -312,8 +313,6 @@ property data_gate sub16.vv {src1, src2}
 ######################
 
 immediate_range my_imm6 -2048 1984 64
-ctype vector32 512 512 vector32
-
 operation ldiu.vv {out vector32 vreg, inout vector32 *addr, in my_imm6 imm}
 {out VAddr, in MemDataIn512} {
   wire [31:0] address = addr + imm;
