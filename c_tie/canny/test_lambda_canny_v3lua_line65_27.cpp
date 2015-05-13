@@ -3,15 +3,15 @@
 #include "image.h"
 #include "arch.h"
 #include "pipeline.h"
-#include "data.h"
+#include "data_lambda_canny_v3lua_line65_27.h"
 #include <xtensa/sim.h>
 #include <xtensa/hal.h>
 #include <xtensa/config/core.h>
 #include <xtensa/config/system.h>
 #include <xtensa/xt_reftb.h>
 
-const int width = 256;  // TODO change to match input image
-const int height = 256;  // TODO change to match input image
+const int width = 512;  // TODO change to match input image
+const int height = 512;  // TODO change to match input image
 
 
 // global var for input/output data

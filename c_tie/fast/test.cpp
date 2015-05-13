@@ -40,12 +40,12 @@ int main(int argc, char* argv[])
   special0_pad_v.dumpDAT("special0_pad_v_dat");
   Image<V16S> cropSpecial0Node_7_v(width/N, height, 3, zero_v);
   Image<short> cropSpecial0Node_7(width, height, 3, 0);
-  xt_iss_switch_mode(XT_ISS_CYCLE_ACCURATE);
-  xt_iss_client_command("isa_profile", "enable");
+  //xt_iss_switch_mode(XT_ISS_CYCLE_ACCURATE);
+  //xt_iss_client_command("isa_profile", "enable");
   scheduledIRNode_19(special0_pad_v, cropSpecial0Node_7_v
   );
-  xt_iss_client_command("isa_profile", "disable");
-  xt_iss_switch_mode(XT_ISS_FUNCTIONAL);
+  //xt_iss_client_command("isa_profile", "disable");
+  //xt_iss_switch_mode(XT_ISS_FUNCTIONAL);
   // save the output
   shuffle_v2s(cropSpecial0Node_7_v, cropSpecial0Node_7);
   //cropSpecial0Node_7.save("cropSpecial0Node_7.bmp");  // save image for debug

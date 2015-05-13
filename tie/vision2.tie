@@ -21,6 +21,8 @@ format f32 32  {slot_f32}
 ;                 'fusion2.sum3.vv',
 ;                 'fusion2.min3.vv',
 ;                 'fusion2.max3.vv',
+;                 'fusion2.and3.vv',
+;                 'fusion2.or3.vv',
 ;                 'fusion2.mac.vv',
 ;                 'fusion2.multRshift.vv');
 ; }
@@ -400,7 +402,7 @@ operation mult.vv {out vv des, in vv src1, in vv src2}{}
 ; if ($use_fusion == 0) {
 // data gate
 property data_gate mult.vv {src1, src2}
-}
+; }
 
 ######################
 ## selection operations
@@ -858,6 +860,147 @@ imap fusion2.max3.vv.case2 {out vv des, in vv src1, in vv src2, in vv src3}
     max.vv des, max, src3;
   }
 }
+
+####################
+## and3/and4
+####################
+
+operation fusion2.and3.vv {out vv des, in vv src1, in vv src2, in vv src3}{}
+{
+; printf("  wire [%s] tmp = src1 & src2;\n", get_vec_range(16));
+  assign des = tmp & src3;
+}
+
+imap fusion2.and3.vv.case1 {out vv des, in vv src1, in vv src2, in vv src3}
+{ {}
+  {
+    fusion2.and3.vv des, src1, src2, src3;
+  }
+}
+{ {vv tmp}
+  {
+    and.vv tmp, src1, src2;
+    and.vv des, src3, tmp;
+  }
+}
+
+imap fusion2.and3.vv.case2 {out vv des, in vv src1, in vv src2, in vv src3}
+{ {}
+  {
+    fusion2.and3.vv des, src1, src2, src3;
+  }
+}
+{ {vv tmp}
+  {
+    and.vv tmp, src1, src2;
+    and.vv des, tmp, src3;
+  }
+}
+
+; if (0) {
+; # add4.vv instruction causes the register file spills more for fast
+operation fusion3.and4.vv {inout vv des, in vv src1, in vv src2, in vv src3}{}
+{
+; printf("  wire [%s] tmp1 = src1 & src2;\n", get_vec_range(16));
+; printf("  wire [%s] tmp2 = tmp1 & src3;\n", get_vec_range(16));
+  assign des = tmp2 & des;
+}
+
+imap fusion2.and4.vv.case1 {inout vv des, in vv src1, in vv src2, in vv src3}
+{ {}
+  {
+    fusion3.and4.vv des, src1, src2, src3;
+  }
+}
+{ {vv tmp1, vv tmp2}
+  {
+    and.vv tmp1, src1, src2;
+    and.vv tmp2, tmp1, src3;
+    and.vv des, des, tmp2;
+  }
+}
+
+imap fusion2.and4.vv.case2 {inout vv des, in vv src1, in vv src2, in vv src3}
+{ {}
+  {
+    fusion3.and4.vv des, src1, src2, src3;
+  }
+}
+{ {vv tmp1, vv tmp2}
+  {
+    and.vv tmp1, src1, src2;
+    and.vv tmp2, src3, tmp1;
+    and.vv des, des, tmp2;
+  }
+}
+
+
+imap fusion2.and4.vv.case3 {inout vv des, in vv src1, in vv src2, in vv src3}
+{ {}
+  {
+    fusion3.and4.vv des, src1, src2, src3;
+  }
+}
+{ {vv tmp1, vv tmp2}
+  {
+    and.vv tmp1, src1, src2;
+    and.vv tmp2, tmp1, src3;
+    and.vv des, tmp2, des;
+  }
+}
+
+imap fusion2.and4.vv.case4 {inout vv des, in vv src1, in vv src2, in vv src3}
+{ {}
+  {
+    fusion3.and4.vv des, src1, src2, src3;
+  }
+}
+{ {vv tmp1, vv tmp2}
+  {
+    and.vv tmp1, src1, src2;
+    and.vv tmp2, src3, tmp1;
+    and.vv des, tmp2, des;
+  }
+}
+; } # end of 'if (0)...'
+
+
+####################
+## or3
+####################
+
+operation fusion2.or3.vv {out vv des, in vv src1, in vv src2, in vv src3}{}
+{
+; printf("  wire [%s] tmp = src1 | src2;\n", get_vec_range(16));
+  assign des = tmp | src3;
+}
+
+imap fusion2.or3.vv.case1 {out vv des, in vv src1, in vv src2, in vv src3}
+{ {}
+  {
+    fusion2.or3.vv des, src1, src2, src3;
+  }
+}
+{ {vv tmp}
+  {
+    or.vv tmp, src1, src2;
+    or.vv des, src3, tmp;
+  }
+}
+
+imap fusion2.or3.vv.case2 {out vv des, in vv src1, in vv src2, in vv src3}
+{ {}
+  {
+    fusion2.or3.vv des, src1, src2, src3;
+  }
+}
+{ {vv tmp}
+  {
+    or.vv tmp, src1, src2;
+    or.vv des, tmp, src3;
+  }
+}
+
 
 ; if ($use_semantic) {
 

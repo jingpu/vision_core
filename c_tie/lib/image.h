@@ -40,7 +40,7 @@ public:
   void padZeros(const Image<T> &img, int rowsTop, int rowsBottom);
 
   // dump/load/compare image data in a ASCII file named 'data.h'
-  void dumpDAT(const char* var_name);
+  void dumpDAT(const char* var_name, const char filename[] = "data.h");
   void loadDAT(const unsigned char *data);
   void cmpDAT(const unsigned char *data);
 
@@ -292,14 +292,15 @@ void Image<T>::saveBMP(const char* filename) const
 
 
 template <typename T>
-void Image<T>::dumpDAT(const char* var_name)
+void Image<T>::dumpDAT(const char* var_name, const char* filename)
 {
   FILE *fp;
   size_t size = mWidth * mHeight * mChannels * sizeof(T);
   unsigned char *data = (unsigned char *)mData;
   const int item_per_line = 12;
-  /*
-  fp= fopen("data.h","a");
+
+  fp= fopen(filename, "a");
+    
   fprintf(fp, "static unsigned char\n");
   fprintf(fp, "\t%s[] = \n", var_name);
   fprintf(fp, "{");
@@ -310,7 +311,6 @@ void Image<T>::dumpDAT(const char* var_name)
   }
   fprintf(fp, "\n};\n\n");
   fclose(fp);
-  */
 }
 
 
