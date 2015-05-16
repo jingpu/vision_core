@@ -84,7 +84,7 @@ function [15:0] func_funnelShift([30:0] Z, [3:0] k)
 }
 
 ######################
-## shared/vector functions
+## vector functions
 ######################
 ; sub get_vec_range {
 ;   my $word_width = shift;
@@ -103,8 +103,8 @@ function [15:0] func_funnelShift([30:0] Z, [3:0] k)
 ; }
 
 
-;# e.g. function [75:0] func_alu_vv([63:0] src1, [63:0] src2, do_sub) slot_shared
-; printf("function [%s] func_alu_vv([%s] src1, [%s] src2, do_sub) slot_shared\n",
+;# e.g. function [75:0] func_alu_vv([63:0] src1, [63:0] src2, do_sub)
+; printf("function [%s] func_alu_vv([%s] src1, [%s] src2, do_sub)\n",
 ;         get_vec_range(19), get_vec_range(16), get_vec_range(16));
 {
 ; #e.g. wire [15:0] res0 = func_mult16(src1[15:0], src2[15:0]);
@@ -118,7 +118,7 @@ function [15:0] func_funnelShift([30:0] Z, [3:0] k)
 }
 
 ; # 2nd copy of func_alu_vv
-; printf("function [%s] func_alu_vv2([%s] src1, [%s] src2, do_sub) slot_shared\n",
+; printf("function [%s] func_alu_vv2([%s] src1, [%s] src2, do_sub)\n",
 ;         get_vec_range(19), get_vec_range(16), get_vec_range(16));
 {
 ; foreach my $i (0..($N-1)) {
@@ -130,7 +130,7 @@ function [15:0] func_funnelShift([30:0] Z, [3:0] k)
 ; printf("  assign func_alu_vv2 = {%s};", join(', ', @results)); 
 }
 
-; printf("function [%s] func_mult_vv([%s] src1, [%s] src2) slot_shared\n",
+; printf("function [%s] func_mult_vv([%s] src1, [%s] src2)\n",
 ;         get_vec_range(16), get_vec_range(16), get_vec_range(16));
 {
 ; foreach my $i (0..($N-1)) {
@@ -142,20 +142,20 @@ function [15:0] func_funnelShift([30:0] Z, [3:0] k)
 ; printf("  assign func_mult_vv = {%s};", join(', ', @results)); 
 }
 
-; printf("function [%s] func_and_vv([%s] src1, [%s] src2) slot_shared\n",
+; printf("function [%s] func_and_vv([%s] src1, [%s] src2)\n",
 ;         get_vec_range(16), get_vec_range(16), get_vec_range(16));
 {
   assign func_and_vv = src1 & src2;
 }
 
-; printf("function [%s] func_or_vv([%s] src1, [%s] src2) slot_shared\n",
+; printf("function [%s] func_or_vv([%s] src1, [%s] src2)\n",
 ;         get_vec_range(16), get_vec_range(16), get_vec_range(16));
 {
   assign func_or_vv = src1 | src2;
 }
 
 
-; printf("function [%s] func_shift_vv([%s] z, [%s] k, op) slot_shared\n",
+; printf("function [%s] func_shift_vv([%s] z, [%s] k, op)\n",
 ;         get_vec_range(16), get_vec_range(16), get_vec_range(16));
 {
   // parse opcode
@@ -179,7 +179,6 @@ function [15:0] func_funnelShift([30:0] Z, [3:0] k)
 ; printf("  assign func_shift_vv = {%s};", join(', ', @results)); 
 }
 
-// mux is not shared
 ; printf("function [%s] func_mux_vv([%s] src1, [%s] src2, [%s] src3)\n",
 ;         get_vec_range(16), get_vec_range(16), get_vec_range(16), get_vec_range(16));
 {
@@ -1012,7 +1011,7 @@ semantic mulx.vv {mult.vv, fusion2.mac.vv, fusion2.multRshift.vv}
 {
 ; printf("  wire [%s] prod = func_mult_vv(src1, src2);\n", get_vec_range(16));
 
-; printf("  wire [%s] sum = func_alu_vv(prod, src3, 1'b0);\n", get_vec_range(19));
+; printf("  wire [%s] sum = func_alu_vv2(prod, src3, 1'b0);\n", get_vec_range(19));
 ; foreach my $i (0..($N-1)) {
 ;   printf("  wire [15:0] acc%d = sum[%s];\n", $i, get_vec_word_range(19, $i, 16));
 ; } 
