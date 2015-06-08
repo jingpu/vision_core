@@ -6,3 +6,5 @@
 *~
 *.bmp
 */data*.h
+*.rtl
+*.iss

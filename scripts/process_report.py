@@ -1,28 +1,29 @@
 #! /usr/bin/python
 
 import sys
+import re
 
 #fileName = "gate_power_downCast_15/power.hier5.rpt"
 fileName = sys.argv[-1]
 f = open(fileName, 'r')
 
-topName = 'Xm_vision_sn32Xttop'
+#topName = 'Xm_vision2_3Xttop'
+topName = 'Xm_vision2_nofusedXttop'
 instNames = ['top',
              'LoadStore',
              'PCandIFetch',
              'TIE',
-             'TIE_Regfile_vector32',
-             '(xtregfile_3R1W_32_512_XTXm_vision_sn32)'
+             'TIE_Regfile_vv',
+            '(xtregfile_3R1W_32_512_XTXm_vision2_nofused)',
+             'FU',
              ]
+#'(xtregfile_3R1W_32_512_XTXm_vision2_3)',
 
-FUNames = ['inv16', 'mux16', 'mult16', 'add16', 'sub16', 'and16', 'or16',
-           'gt16', 'lt16', 'gte16', 'lte16', 'lshift16', 'rshift16', 
-           'min16', 'max16']
-
-for FU in FUNames:
-    instNames.append("TIE_semantic_slot0_{}_vv".format(FU))
+p = re.compile('TIE_semantic_slot0_\w+_vv')
 
 datasheet = {}
+
+datasheet['FU'] = (0, 0)
 
 report_start = False
 for line in  f:
@@ -45,6 +46,8 @@ for line in  f:
     if modName in instNames:
         datasheet[modName] = ((float(tokens[2]) + float(tokens[3])), float(tokens[4]))
 
+    if p.match(instName):
+        datasheet['FU'] = (datasheet['FU'][0] + (float(tokens[2]) + float(tokens[3])), datasheet['FU'][1] + float(tokens[4]))
 
 f.close()
     

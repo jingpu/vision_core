@@ -10,8 +10,8 @@
 #include <xtensa/config/system.h>
 #include <xtensa/xt_reftb.h>
 
-const int width = 256;  // TODO change to match input image
-const int height = 256;  // TODO change to match input image
+const int width = 512;  // TODO change to match input image
+const int height = 32;  // TODO change to match input image
 
 
 // global var for input/output data

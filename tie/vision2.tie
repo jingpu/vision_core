@@ -13,8 +13,11 @@
 
 format f32 32  {slot_f32}
 
-; my @wide_ops = ( 'mux.vv');
-; 
+; my @my_ops = qw(add.vv sub.vv lt.vv lte.vv eq.vv ne.vv inv.vv
+;                 not.vv abs.vv and.vv or.vv mult.vv min.vv max.vv
+;                 lshift.vv rshift.vv);
+; my @wide_ops = qw(mux.vv);
+;  
 ; my @fused_ops = ();
 ; if ($use_fusion) {
 ;   @fused_ops = ('fusion2.clamp.vv',
@@ -27,6 +30,7 @@ format f32 32  {slot_f32}
 ;                 'fusion2.multRshift.vv');
 ; }
 ; push(@wide_ops, @fused_ops);
+; push(@wide_ops, @my_ops) if ($R > 32);  
 ; 
 ; printf("slot_opcodes slot_f32 {%s}\n", join(', ', @wide_ops));
 
